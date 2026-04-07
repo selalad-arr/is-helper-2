@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useApiSettings } from '../src/contexts/ApiSettingsContext';
+import { useApiSettings } from '../contexts/ApiSettingsContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const ApiSettingsModal: React.FC = () => {
     const { isSettingsComplete, setCustomApiKey, setUseFreeQuota, quotaExceededError, systemQuotaExceeded, setSystemQuotaExceeded } = useApiSettings();

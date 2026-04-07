@@ -6,9 +6,9 @@ import ReportGenStep3Compile from './ReportGenStep3Compile';
 import type { ReportStructure } from '../services/geminiService';
 import { generateReportStructure } from '../services/geminiService';
 import { trackEvent } from '../services/analyticsService';
-import { compressImage } from '../src/utils/imageCompression';
-import { useFirestoreData } from '../src/hooks/useFirestore';
-import { uploadImageToStorage } from '../src/utils/storageUtils';
+import { compressImage } from '../utils/imageCompression';
+import { useFirestoreData } from '../hooks/useFirestore';
+import { uploadImageToStorage } from '../utils/storageUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 const ReportStructureGenerator = () => {

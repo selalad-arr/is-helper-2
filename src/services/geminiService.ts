@@ -1,5 +1,5 @@
 import { GoogleGenAI, Chat, Type, GenerateContentResponse } from "@google/genai";
-import { db, auth } from '../src/firebase';
+import { db, auth } from '../firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getFeedbackPrompt } from './prompts/feedbackPrompts';
 import { analyzeSourceBasePrompt } from './prompts/analyzeSourcePrompt';
@@ -7,7 +7,7 @@ import { presentationSystemInstruction } from './prompts/presentationPrompt';
 import { projectTitleSystemInstruction } from './prompts/projectTitlePrompt';
 import { reportStructureSystemInstruction } from './prompts/reportStructurePrompt';
 import { sectionFeedbackBasePrompt } from './prompts/sectionFeedbackPrompt';
-import { fetchImageAsBase64 } from '../src/utils/imageUtils';
+import { fetchImageAsBase64 } from '../utils/imageUtils';
 
 
 export interface ChatMessage {

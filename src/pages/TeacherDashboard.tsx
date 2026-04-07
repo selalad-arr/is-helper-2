@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
-import { ICONS, ChevronRightIcon, PlusIcon, TrashIcon, UsersIcon } from '../../ui/icons';
+import { ICONS, ChevronRightIcon, PlusIcon, TrashIcon, UsersIcon } from '../ui/icons';
 
 export const TeacherDashboard: React.FC = () => {
   const { user, userData } = useAuth();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFirestoreData } from '../src/hooks/useFirestore';
+import { useFirestoreData } from '../hooks/useFirestore';
 import { generateAARReport } from '../services/geminiService';
 import { SparklesIcon, DocumentTextIcon, CheckCircleIcon, ExclamationTriangleIcon, ArrowTrendingUpIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';

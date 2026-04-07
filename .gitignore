@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project testing and environment files
+node-env/
+fix-imports.cjs
+test-node.js
+status.txt
+diff.txt

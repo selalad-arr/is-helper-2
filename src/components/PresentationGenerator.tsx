@@ -4,7 +4,7 @@ import { generatePresentationContent } from '../services/geminiService';
 import type { PresentationContent } from '../services/geminiService';
 import { SparklesIcon, ExclamationTriangleIcon, AcademicCapIcon, DocumentDuplicateIcon, CheckIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
-import { useFirestoreData } from '../src/hooks/useFirestore';
+import { useFirestoreData } from '../hooks/useFirestore';
 
 // Loading skeleton component
 const SkeletonLoader = ({ className }: { className?: string }) => (

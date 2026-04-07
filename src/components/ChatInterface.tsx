@@ -5,7 +5,7 @@ import type { ChatMessage } from '../types';
 import { createChatSession, handleGeminiError } from '../services/geminiService';
 import { SparklesIcon, UserCircleIcon, PaperAirplaneIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
-import { useFirestoreData } from '../src/hooks/useFirestore';
+import { useFirestoreData } from '../hooks/useFirestore';
 
 interface ChatInterfaceProps {
     systemPrompt: string;

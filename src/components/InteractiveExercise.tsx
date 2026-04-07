@@ -8,7 +8,7 @@ import { trackEvent } from '../services/analyticsService';
 
 import { useParams } from 'react-router-dom';
 import { useProjectData } from '../hooks/useProjectData';
-import { useFirestoreData } from '../src/hooks/useFirestore';
+import { useFirestoreData } from '../hooks/useFirestore';
 
 interface InteractiveExerciseProps {
   question: string;

@@ -4,8 +4,8 @@ import { HashRouter } from 'react-router-dom';
 import App from './App';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AuthProvider } from './src/contexts/AuthContext';
-import { ApiSettingsProvider } from './src/contexts/ApiSettingsContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { ApiSettingsProvider } from './contexts/ApiSettingsContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

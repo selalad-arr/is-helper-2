@@ -44,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Use refs to track current state for the onAuthStateChanged listener
   const userRef = useRef<any | null>(null);
   const isMockAdminRef = useRef<boolean>(false);
+  const processedUidRef = useRef<string | null>(null);
+  const isLoggingInRef = useRef<boolean>(false);
 
   useEffect(() => {
     let unsubscribeDoc: (() => void) | undefined;
@@ -55,14 +57,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      if (currentUser) {
-        isMockAdminRef.current = false;
-      }
-
       userRef.current = currentUser;
-      setUser(currentUser);
       
       if (currentUser) {
+        // Prevent infinite loops by checking if we have already processed this user UID
+        if (processedUidRef.current === currentUser.uid) {
+          setUser(currentUser);
+          return;
+        }
+
+        processedUidRef.current = currentUser.uid;
+        isMockAdminRef.current = false;
+        setUser(currentUser);
+
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
           
@@ -70,12 +77,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (unsubscribeDoc) unsubscribeDoc();
           
           unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+            if (isLoggingInRef.current) {
+              return; // Ignore snapshots during active manual login to prevent role revert
+            }
             if (docSnap.exists()) {
               const data = docSnap.data();
               setUserData(data);
               setUserRole(data.role || 'student');
             } else {
-              // Create default doc if missing
+              // Create default doc if missing (e.g. session restored but no DB record exists)
               const defaultData = {
                 uid: currentUser.uid,
                 email: currentUser.email || '',
@@ -106,6 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
       } else {
+        processedUidRef.current = null;
+        setUser(null);
         setUserData(null);
         setUserRole(null);
         if (unsubscribeDoc) unsubscribeDoc();
@@ -151,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (providerType: 'google' | 'facebook' | 'line' = 'google', role: 'student' | 'teacher' | 'admin' = 'student') => {
     setLoading(true);
+    isLoggingInRef.current = true;
     isMockAdminRef.current = false;
     try {
       let provider: FirebaseAuthProvider;
@@ -168,25 +181,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
-        const userSnap = await getDoc(userDocRef);
-        if (!userSnap.exists()) {
-          await setDoc(userDocRef, {
+        
+        // Optimistically set the role immediately to prevent any UI flashes
+        let finalRole = role;
+        
+        // Ensure the admin mock id retains admin role
+        if (result.user.email === 'admin') finalRole = 'admin';
+        
+        setUserRole(finalRole);
+        setUserData((prev: any) => ({ ...prev, role: finalRole }));
+        
+        // We do a merge. If it's a new user, onboardingComplete will be undefined, which is fine until first onSnapshot fires.
+        await setDoc(userDocRef, { 
             uid: result.user.uid,
             email: result.user.email || '',
             displayName: result.user.displayName || '',
             photoURL: result.user.photoURL || '',
-            role: role,
-            createdAt: serverTimestamp(),
-            onboardingComplete: false
-          });
-        } else {
-          await setDoc(userDocRef, { role: role }, { merge: true });
-        }
+            role: finalRole 
+        }, { merge: true });
       }
     } catch (error) {
       console.error(`${providerType} login error:`, error);
       throw error;
     } finally {
+      isLoggingInRef.current = false;
       setLoading(false);
     }
   };

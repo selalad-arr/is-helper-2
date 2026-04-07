@@ -26,6 +26,9 @@ export const ApiSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     const [isSettingsComplete, setIsSettingsComplete] = useState<boolean>(false);
     const [quotaExceededError, setQuotaExceededError] = useState<boolean>(false);
     const [systemQuotaExceeded, setSystemQuotaExceeded] = useState<boolean>(false);
+    
+    const lastUserProcessedRef = React.useRef<string | null>(null);
+    const lastDateProcessedRef = React.useRef<string | null>(null);
 
     useEffect(() => {
         const handleQuotaExceeded = () => {
@@ -57,21 +60,36 @@ export const ApiSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     useEffect(() => {
         const fetchQuota = async () => {
-            if (!user || !useFreeQuota) return;
-            const docRef = doc(db, 'users', user.uid);
-            const docSnap = await getDoc(docRef);
+            if (!user || !useFreeQuota) {
+                lastUserProcessedRef.current = null;
+                return;
+            }
             
+            const docRef = doc(db, 'users', user.uid);
             const today = new Date().toISOString().split('T')[0];
             
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.lastQuotaDate === today) {
-                    setQuotaUsed(data.aiQuotaUsed || 0);
-                } else {
-                    // Reset quota for a new day
-                    await updateDoc(docRef, { aiQuotaUsed: 0, lastQuotaDate: today });
-                    setQuotaUsed(0);
+            // Skip if already fetched for this user today
+            if (lastUserProcessedRef.current === user.uid && lastDateProcessedRef.current === today) {
+                return;
+            }
+
+            try {
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.lastQuotaDate === today) {
+                        setQuotaUsed(data.aiQuotaUsed || 0);
+                    } else {
+                        // Reset quota for a new day
+                        await updateDoc(docRef, { aiQuotaUsed: 0, lastQuotaDate: today });
+                        setQuotaUsed(0);
+                    }
+                    lastUserProcessedRef.current = user.uid;
+                    lastDateProcessedRef.current = today;
                 }
+            } catch (error) {
+                console.error("Error fetching quota:", error);
             }
         };
         fetchQuota();

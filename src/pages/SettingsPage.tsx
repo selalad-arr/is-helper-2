@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { SunIcon, MoonIcon, ComputerDesktopIcon, KeyIcon, EyeIcon, EyeSlashIcon } from '../ui/icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { trackEvent } from '../services/analyticsService';
-import { useApiSettings } from '../src/contexts/ApiSettingsContext';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useApiSettings } from '../contexts/ApiSettingsContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useTheme();

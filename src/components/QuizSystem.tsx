@@ -14,9 +14,9 @@ import {
   getDocs,
   limit
 } from 'firebase/firestore';
-import { db, auth } from '../src/firebase';
-import { useAuth } from '../src/contexts/AuthContext';
-import { QUIZ_QUESTIONS, QuizQuestion } from '../src/constants/quizQuestions';
+import { db, auth } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
+import { QUIZ_QUESTIONS, QuizQuestion } from '../constants/quizQuestions';
 import { Trophy, Users, Play, LogOut, Timer, CheckCircle, CircleX as XCircle, Crown, Award } from 'lucide-react';
 
 interface QuizRoom {

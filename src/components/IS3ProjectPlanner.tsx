@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import { DocumentArrowDownIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
-import { useFirestoreData } from '../src/hooks/useFirestore';
+import { useFirestoreData } from '../hooks/useFirestore';
 
 const pdfStyles: { [key: string]: React.CSSProperties } = {
     page: {

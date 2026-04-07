@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { generateChapterGuideline, ChapterGuideline, generateSectionFeedback } from '../services/geminiService';
 import { Loader2, Sparkles, RefreshCw, Camera, X, Lightbulb } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
-import { compressImage } from '../src/utils/imageCompression';
-import { useFirestoreData } from '../src/hooks/useFirestore';
-import { uploadImageToStorage } from '../src/utils/storageUtils';
+import { compressImage } from '../utils/imageCompression';
+import { useFirestoreData } from '../hooks/useFirestore';
+import { uploadImageToStorage } from '../utils/storageUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ChapterDraftingAssistantProps {

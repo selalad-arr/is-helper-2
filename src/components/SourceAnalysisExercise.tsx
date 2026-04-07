@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { analyzeSource } from '../services/geminiService';
 import { DocumentTextIcon, PhotoIcon, SparklesStarIcon, ArrowUpOnSquareIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
-import { compressImage } from '../src/utils/imageCompression';
-import { useFirestoreData } from '../src/hooks/useFirestore';
-import { uploadImageToStorage } from '../src/utils/storageUtils';
+import { compressImage } from '../utils/imageCompression';
+import { useFirestoreData } from '../hooks/useFirestore';
+import { uploadImageToStorage } from '../utils/storageUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 const SourceAnalysisExercise: React.FC = () => {

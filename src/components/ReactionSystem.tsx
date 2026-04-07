@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ThumbsUp, Heart, Smile } from 'lucide-react';
-import { db, auth } from '../src/firebase';
+import { db, auth } from '../firebase';
 import { 
   collection, 
   doc, 

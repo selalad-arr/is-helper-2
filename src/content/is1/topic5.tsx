@@ -48,7 +48,7 @@ const RubricRow = ({ criteria, levels }: { criteria: string, levels: string[] })
     </tr>
 );
 
-import { useFirestoreData } from '../../src/hooks/useFirestore';
+import { useFirestoreData } from '../../hooks/useFirestore';
 
 const Topic5 = () => {
     const pdfContainerRef = useRef<HTMLDivElement>(null);

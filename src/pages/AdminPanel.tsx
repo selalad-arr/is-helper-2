@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
-import { ICONS, UsersIcon, UserCircleIcon, AcademicCapIcon, MagnifyingGlassIcon } from '../../ui/icons';
+import { ICONS, UsersIcon, UserCircleIcon, AcademicCapIcon, MagnifyingGlassIcon } from '../ui/icons';
 
 export const AdminPanel: React.FC = () => {
   const { user } = useAuth();
@@ -13,7 +13,7 @@ export const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || user.uid === 'admin-mock-id') {
+    if (!user) {
       setLoading(false);
       return;
     }
@@ -110,13 +110,6 @@ export const AdminPanel: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium italic">กำลังโหลดข้อมูล...</td>
-                  </tr>
-                ) : user?.uid === 'admin-mock-id' ? (
-                  <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center">
-                      <div className="text-amber-500 font-bold mb-2">บัญชีทดสอบ (Mock Admin)</div>
-                      <div className="text-slate-500 text-sm">กรุณาเข้าสู่ระบบด้วยอีเมล {import.meta.env.VITE_ADMIN_EMAIL || 'selalad@gmail.com'} เพื่อดูข้อมูลจริง</div>
-                    </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
