@@ -1,0 +1,337 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "timestamp" },
+        "aiQuotaUsed": { "type": "number" },
+        "lastQuotaDate": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "teacher", "admin"] },
+        "school": { "type": "string" },
+        "grade": { "type": "string" },
+        "classNo": { "type": "string" },
+        "classId": { "type": "string" },
+        "onboardingComplete": { "type": "boolean" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Classroom": {
+      "title": "Classroom",
+      "description": "A classroom created by a teacher",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "className": { "type": "string" },
+        "classCode": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "createdAt": { "type": "timestamp" },
+        "studentCount": { "type": "number" }
+      },
+      "required": ["classId", "className", "classCode", "teacherId"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A student's IS project",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "classId": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "progress": { "type": "number" },
+        "content": { "type": "object" },
+        "feedback": { "type": "object" },
+        "updatedAt": { "type": "timestamp" }
+      },
+      "required": ["projectId", "studentId"]
+    },
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Tracks the topics a user has visited",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "visited_is1": { "type": "array", "items": { "type": "number" } },
+        "visited_is2": { "type": "array", "items": { "type": "number" } },
+        "visited_is3": { "type": "array", "items": { "type": "number" } }
+      },
+      "required": ["uid"]
+    },
+    "UserProject": {
+      "title": "UserProject",
+      "description": "Stores the user's project name and form data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "projectName": { "type": "string" },
+        "independentProjectTitle": { "type": "string" },
+        "is1ProjectTitle": { "type": "string" },
+        "is2ProjectTitle": { "type": "string" },
+        "is3ProjectTitle": { "type": "string" },
+        "selectedIS": { "type": "string" },
+        "coreConcept": { "type": "string" },
+        "researchData": { "type": "string" },
+        "topic5_form_data": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserChapter": {
+      "title": "UserChapter",
+      "description": "Stores chapter drafting data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "guideline": { "type": "string" },
+        "studentInputs": { "type": "string" },
+        "studentImages": { "type": "string" },
+        "feedbackResults": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserReport": {
+      "title": "UserReport",
+      "description": "Stores report generation data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "step": { "type": "string" },
+        "interest": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "projectAbstract": { "type": "string" },
+        "reportStructure": { "type": "string" },
+        "studentInputs": { "type": "string" },
+        "studentImages": { "type": "string" },
+        "feedbackResults": { "type": "string" },
+        "authorName": { "type": "string" },
+        "acknowledgements": { "type": "string" },
+        "references": { "type": "string" },
+        "customCoverText": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "semester": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserPresentation": {
+      "title": "UserPresentation",
+      "description": "Stores presentation generation data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "introduction": { "type": "string" },
+        "methodology": { "type": "string" },
+        "results": { "type": "string" },
+        "conclusion": { "type": "string" },
+        "textContent": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserIS3Plan": {
+      "title": "UserIS3Plan",
+      "description": "Stores IS3 project plan data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "plan": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserIS3AAR": {
+      "title": "UserIS3AAR",
+      "description": "Stores IS3 After Action Review (AAR) data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "wentWell": { "type": "string" },
+        "problems": { "type": "string" },
+        "improvements": { "type": "string" },
+        "generatedAAR": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserSourceAnalysis": {
+      "title": "UserSourceAnalysis",
+      "description": "Stores source analysis data for a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "activeTab": { "type": "string" },
+        "manualInput": { "type": "string" },
+        "feedback": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserChat": {
+      "title": "UserChat",
+      "description": "Stores chat history for a specific context",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "messages": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "UserExercise": {
+      "title": "UserExercise",
+      "description": "Stores the user's answers and chat history for a specific exercise",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "answer": { "type": "string" },
+        "feedback": { "type": "string" },
+        "chatHistory": { "type": "string" },
+        "problem": { "type": "string" },
+        "interest": { "type": "string" },
+        "subject": { "type": "string" },
+        "isLevel": { "type": "string" },
+        "generatedIdeas": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["uid"]
+    },
+    "AICache": {
+      "title": "AICache",
+      "description": "Caches AI responses to save API calls",
+      "type": "object",
+      "properties": {
+        "promptHash": { "type": "string" },
+        "response": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["promptHash", "response", "createdAt"]
+    },
+    "LoginHistory": {
+      "title": "LoginHistory",
+      "description": "Records every login event",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "timestamp": { "type": "timestamp" },
+        "userAgent": { "type": "string" }
+      },
+      "required": ["uid", "timestamp"]
+    },
+    "Reaction": {
+      "title": "Reaction",
+      "description": "A user's reaction to a topic",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "type": { "type": "string" },
+        "timestamp": { "type": "timestamp" }
+      },
+      "required": ["uid", "type", "timestamp"]
+    },
+    "QuizRoom": {
+      "title": "QuizRoom",
+      "description": "A real-time quiz competition room",
+      "type": "object",
+      "properties": {
+        "hostId": { "type": "string" },
+        "hostName": { "type": "string" },
+        "status": { "type": "string", "enum": ["waiting", "active", "finished"] },
+        "currentQuestionIndex": { "type": "number" },
+        "questionIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "timestamp" },
+        "startedAt": { "type": "timestamp" }
+      },
+      "required": ["hostId", "status", "createdAt"]
+    },
+    "QuizPlayer": {
+      "title": "QuizPlayer",
+      "description": "A player in a quiz room",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "score": { "type": "number" },
+        "lastAnswer": { "type": "string" },
+        "lastAnswerCorrect": { "type": "boolean" },
+        "joinedAt": { "type": "timestamp" }
+      },
+      "required": ["uid", "displayName", "score", "joinedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/classrooms/{classId}": {
+      "schema": { "$ref": "#/entities/Classroom" },
+      "description": "Classroom data"
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Student project data"
+    },
+    "/users/{userId}/login_history/{loginId}": {
+      "schema": { "$ref": "#/entities/LoginHistory" },
+      "description": "User login history"
+    },
+    "/user_progress/{userId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "User progress data"
+    },
+    "/user_projects/{userId}": {
+      "schema": { "$ref": "#/entities/UserProject" },
+      "description": "User project data"
+    },
+    "/user_chapters/{userId}/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/UserChapter" },
+      "description": "User chapter drafting data"
+    },
+    "/user_reports/{userId}": {
+      "schema": { "$ref": "#/entities/UserReport" },
+      "description": "User report generation data"
+    },
+    "/user_presentations/{userId}": {
+      "schema": { "$ref": "#/entities/UserPresentation" },
+      "description": "User presentation generation data"
+    },
+    "/user_is3_plans/{userId}": {
+      "schema": { "$ref": "#/entities/UserIS3Plan" },
+      "description": "User IS3 project plan data"
+    },
+    "/user_is3_aars/{userId}": {
+      "schema": { "$ref": "#/entities/UserIS3AAR" },
+      "description": "User IS3 AAR data"
+    },
+    "/user_source_analyses/{userId}": {
+      "schema": { "$ref": "#/entities/UserSourceAnalysis" },
+      "description": "User source analysis data"
+    },
+    "/user_chats/{userId}/chats/{chatContext}": {
+      "schema": { "$ref": "#/entities/UserChat" },
+      "description": "User chat history data"
+    },
+    "/user_exercises/{userId}/exercises/{contextId}": {
+      "schema": { "$ref": "#/entities/UserExercise" },
+      "description": "User exercise data"
+    },
+    "/ai_cache/{promptHash}": {
+      "schema": { "$ref": "#/entities/AICache" },
+      "description": "Cached AI responses"
+    },
+    "/topic_reactions/{topicId}/reactions/{userId}": {
+      "schema": { "$ref": "#/entities/Reaction" },
+      "description": "User reactions to topics"
+    },
+    "/quiz_rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/QuizRoom" },
+      "description": "Quiz competition rooms"
+    },
+    "/quiz_rooms/{roomId}/players/{userId}": {
+      "schema": { "$ref": "#/entities/QuizPlayer" },
+      "description": "Players in a quiz room"
+    }
+  }
+}

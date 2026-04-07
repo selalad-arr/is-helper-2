@@ -1,0 +1,452 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - createdAt: timestamp (optional)
+    //   - aiQuotaUsed: number (optional)
+    //   - lastQuotaDate: string (optional)
+    //   - role: string (student, teacher, admin)
+    //   - school: string (optional)
+    //   - grade: string (optional)
+    //   - classNo: string (optional)
+    //   - classId: string (optional)
+    //   - onboardingComplete: boolean (optional)
+    //
+    // Collection: classrooms
+    // Document ID: {classId}
+    // Fields:
+    //   - classId: string (required)
+    //   - className: string (required)
+    //   - classCode: string (required)
+    //   - teacherId: string (required)
+    //   - teacherName: string (optional)
+    //   - createdAt: timestamp (optional)
+    //
+    // Collection: projects
+    // Document ID: {projectId}
+    // Fields:
+    //   - projectId: string (required)
+    //   - studentId: string (required)
+    //   - studentName: string (optional)
+    //   - classId: string (optional)
+    //   - title: string (optional)
+    //   - status: string (optional)
+    //   - progress: number (optional)
+    //   - content: map (optional)
+    //   - feedback: map (optional)
+    //   - updatedAt: timestamp (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+    function getRole() {
+      return getUserData(request.auth.uid).role;
+    }
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "selalad@gmail.com" || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+    function isTeacher() {
+      return isAuthenticated() && getRole() == 'teacher';
+    }
+    function isStudent() {
+      return isAuthenticated() && getRole() == 'student';
+    }
+    function isTeacherOfStudent(studentId) {
+      let student = getUserData(studentId);
+      return isTeacher() && student.classId != null && 
+             get(/databases/$(database)/documents/classrooms/$(student.classId)).data.teacherId == request.auth.uid;
+    }
+    function isTeacherOfProject(projectData) {
+      return isTeacher() && projectData.classId != null && 
+             get(/databases/$(database)/documents/classrooms/$(projectData.classId)).data.teacherId == request.auth.uid;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || 
+             (!('uid' in resource.data) && request.resource.data.uid == request.auth.uid) ||
+             (request.resource.data.uid == resource.data.uid);
+    }
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+    function isValidList(list, maxSize) {
+      return list is list && list.size() <= maxSize;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser() {
+      return hasRequiredFields(['uid', 'email']) &&
+             hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'aiQuotaUsed', 'lastQuotaDate', 'role', 'school', 'grade', 'classNo', 'classId', 'onboardingComplete']) &&
+             request.resource.data.uid is string &&
+             request.resource.data.email is string &&
+             isValidOptionalString('displayName', 0, 100) &&
+             isValidOptionalString('photoURL', 0, 2048) &&
+             (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp) &&
+             (!('aiQuotaUsed' in request.resource.data) || request.resource.data.aiQuotaUsed is number) &&
+             isValidOptionalString('lastQuotaDate', 0, 20) &&
+             (!('role' in request.resource.data) || request.resource.data.role in ['student', 'teacher', 'admin']) &&
+             isValidOptionalString('school', 0, 200) &&
+             isValidOptionalString('grade', 0, 50) &&
+             isValidOptionalString('classNo', 0, 50) &&
+             isValidOptionalString('classId', 0, 100) &&
+             (!('onboardingComplete' in request.resource.data) || request.resource.data.onboardingComplete is bool);
+    }
+
+    function isValidClassroom() {
+      return hasRequiredFields(['classId', 'className', 'classCode', 'teacherId']) &&
+             hasOnlyAllowedFields(['classId', 'className', 'classCode', 'teacherId', 'teacherName', 'createdAt', 'studentCount']) &&
+             request.resource.data.classId is string &&
+             request.resource.data.className is string &&
+             request.resource.data.classCode is string &&
+             request.resource.data.teacherId is string &&
+             isValidOptionalString('teacherName', 0, 100) &&
+             (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp) &&
+             (!('studentCount' in request.resource.data) || request.resource.data.studentCount is number);
+    }
+
+    function isValidProject() {
+      return hasRequiredFields(['projectId', 'studentId']) &&
+             hasOnlyAllowedFields(['projectId', 'studentId', 'studentName', 'classId', 'title', 'status', 'progress', 'content', 'feedback', 'updatedAt']) &&
+             request.resource.data.projectId is string &&
+             request.resource.data.studentId is string &&
+             isValidOptionalString('studentName', 0, 100) &&
+             isValidOptionalString('classId', 0, 100) &&
+             isValidOptionalString('title', 0, 200) &&
+             isValidOptionalString('status', 0, 50) &&
+             (!('progress' in request.resource.data) || request.resource.data.progress is number) &&
+             (!('content' in request.resource.data) || request.resource.data.content is map) &&
+             (!('feedback' in request.resource.data) || request.resource.data.feedback is map) &&
+             (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
+    }
+
+    function isValidUserProject() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'projectName', 'independentProjectTitle', 'is1ProjectTitle', 'is2ProjectTitle', 'is3ProjectTitle', 'selectedIS', 'coreConcept', 'researchData', 'topic5_form_data']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('projectName', 0, 200) &&
+             isValidOptionalString('independentProjectTitle', 0, 200) &&
+             isValidOptionalString('is1ProjectTitle', 0, 200) &&
+             isValidOptionalString('is2ProjectTitle', 0, 200) &&
+             isValidOptionalString('is3ProjectTitle', 0, 200) &&
+             isValidOptionalString('selectedIS', 0, 50) &&
+             isValidOptionalString('coreConcept', 0, 50000) &&
+             isValidOptionalString('researchData', 0, 50000) &&
+             isValidOptionalString('topic5_form_data', 0, 1000000); // 1MB limit
+    }
+
+    function isValidUserProgress() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'visited_is1', 'visited_is2', 'visited_is3']) &&
+             request.resource.data.uid is string &&
+             (!('visited_is1' in request.resource.data) || isValidList(request.resource.data.visited_is1, 100)) &&
+             (!('visited_is2' in request.resource.data) || isValidList(request.resource.data.visited_is2, 100)) &&
+             (!('visited_is3' in request.resource.data) || isValidList(request.resource.data.visited_is3, 100));
+    }
+
+    function isValidUserChapter() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'guideline', 'studentInputs', 'studentImages', 'feedbackResults']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('guideline', 0, 1000000) &&
+             isValidOptionalString('studentInputs', 0, 1000000) &&
+             isValidOptionalString('studentImages', 0, 1000000) &&
+             isValidOptionalString('feedbackResults', 0, 1000000);
+    }
+
+    function isValidUserReport() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'step', 'interest', 'projectTitle', 'projectAbstract', 'reportStructure', 'studentInputs', 'studentImages', 'feedbackResults', 'authorName', 'acknowledgements', 'references', 'customCoverText', 'schoolName', 'semester']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('step', 0, 50) &&
+             isValidOptionalString('interest', 0, 50000) &&
+             isValidOptionalString('projectTitle', 0, 200) &&
+             isValidOptionalString('projectAbstract', 0, 50000) &&
+             isValidOptionalString('reportStructure', 0, 1000000) &&
+             isValidOptionalString('studentInputs', 0, 1000000) &&
+             isValidOptionalString('studentImages', 0, 1000000) &&
+             isValidOptionalString('feedbackResults', 0, 1000000) &&
+             isValidOptionalString('authorName', 0, 200) &&
+             isValidOptionalString('acknowledgements', 0, 50000) &&
+             isValidOptionalString('references', 0, 50000) &&
+             isValidOptionalString('customCoverText', 0, 50000) &&
+             isValidOptionalString('schoolName', 0, 200) &&
+             isValidOptionalString('semester', 0, 200);
+    }
+
+    function isValidUserPresentation() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'projectTitle', 'introduction', 'methodology', 'results', 'conclusion', 'textContent']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('projectTitle', 0, 200) &&
+             isValidOptionalString('introduction', 0, 50000) &&
+             isValidOptionalString('methodology', 0, 50000) &&
+             isValidOptionalString('results', 0, 50000) &&
+             isValidOptionalString('conclusion', 0, 50000) &&
+             isValidOptionalString('textContent', 0, 1000000);
+    }
+
+    function isValidUserIS3Plan() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'plan']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('plan', 0, 1000000);
+    }
+
+    function isValidUserIS3AAR() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'wentWell', 'problems', 'improvements', 'generatedAAR']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('wentWell', 0, 50000) &&
+             isValidOptionalString('problems', 0, 50000) &&
+             isValidOptionalString('improvements', 0, 50000) &&
+             isValidOptionalString('generatedAAR', 0, 1000000);
+    }
+
+    function isValidUserSourceAnalysis() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'activeTab', 'manualInput', 'feedback']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('activeTab', 0, 50) &&
+             isValidOptionalString('manualInput', 0, 50000) &&
+             isValidOptionalString('feedback', 0, 1000000);
+    }
+
+    function isValidUserChat() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'messages']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('messages', 0, 1000000);
+    }
+
+    function isValidUserExercise() {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'answer', 'feedback', 'chatHistory', 'problem', 'interest', 'subject', 'isLevel', 'generatedIdeas']) &&
+             request.resource.data.uid is string &&
+             isValidOptionalString('answer', 0, 50000) &&
+             isValidOptionalString('feedback', 0, 50000) &&
+             isValidOptionalString('chatHistory', 0, 1000000) &&
+             isValidOptionalString('problem', 0, 5000) &&
+             isValidOptionalString('interest', 0, 5000) &&
+             isValidOptionalString('subject', 0, 5000) &&
+             isValidOptionalString('isLevel', 0, 50) &&
+             (!('generatedIdeas' in request.resource.data) || isValidList(request.resource.data.generatedIdeas, 100));
+    }
+
+    function isValidAiCache() {
+      return hasRequiredFields(['promptHash', 'response', 'createdAt']) &&
+             hasOnlyAllowedFields(['promptHash', 'response', 'createdAt']) &&
+             request.resource.data.promptHash is string &&
+             request.resource.data.response is string &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isTeacherOfStudent(userId);
+      allow create: if isOwner(userId) && isValidUser() && uidUnchanged();
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser() && uidNotModified();
+      allow delete: if isAdmin();
+
+      match /login_history/{loginId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidLoginHistory();
+        allow update, delete: if false;
+      }
+    }
+
+    match /classrooms/{classId} {
+      allow read: if isAuthenticated();
+      allow create: if isTeacher() && isValidClassroom() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if (isTeacher() && resource.data.teacherId == request.auth.uid && isValidClassroom()) ||
+                       (isStudent() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentCount']));
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    match /projects/{projectId} {
+      allow read: if isOwner(resource.data.studentId) || isTeacherOfProject(resource.data);
+      allow create: if isStudent() && request.resource.data.studentId == request.auth.uid && isValidProject();
+      allow update: if (isOwner(resource.data.studentId) && isValidProject()) || 
+                      (isTeacherOfProject(resource.data) && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['feedback', 'updatedAt']));
+      allow delete: if isOwner(resource.data.studentId) || isAdmin();
+    }
+
+    function isValidLoginHistory() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'timestamp']) &&
+             data.uid == request.auth.uid &&
+             data.timestamp is timestamp &&
+             (!('userAgent' in data) || data.userAgent is string);
+    }
+
+    match /user_progress/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProgress() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserProgress() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_projects/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProject() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserProject() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_chapters/{userId}/chapters/{chapterId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserChapter() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserChapter() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_reports/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserReport() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserReport() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_presentations/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserPresentation() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserPresentation() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_is3_plans/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserIS3Plan() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserIS3Plan() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_is3_aars/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserIS3AAR() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserIS3AAR() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_source_analyses/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserSourceAnalysis() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserSourceAnalysis() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_chats/{userId}/chats/{chatContext} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserChat() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserChat() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /user_exercises/{userId}/exercises/{contextId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserExercise() && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUserExercise() && uidNotModified();
+      allow delete: if false;
+    }
+
+    match /ai_cache/{promptHash} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAiCache();
+      allow update: if false; // Cache should be immutable
+      allow delete: if false;
+    }
+
+    match /topic_reactions/{topicId}/reactions/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId) && isValidReaction();
+      allow delete: if isOwner(userId);
+    }
+
+    function isValidReaction() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'type', 'timestamp']) &&
+             data.uid == request.auth.uid &&
+             data.type is string &&
+             data.type.size() <= 50 &&
+             data.timestamp is timestamp;
+    }
+
+    match /quiz_rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidQuizRoom();
+      allow update: if isAuthenticated() && resource.data.hostId == request.auth.uid && isValidQuizRoom();
+      allow delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+
+      match /players/{userId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isOwner(userId) && isValidQuizPlayer();
+        allow delete: if isOwner(userId) || (isAuthenticated() && get(/databases/$(database)/documents/quiz_rooms/$(roomId)).data.hostId == request.auth.uid);
+      }
+    }
+
+    function isValidQuizRoom() {
+      let data = request.resource.data;
+      return hasRequiredFields(['hostId', 'status', 'createdAt']) &&
+             data.hostId is string &&
+             data.status in ['waiting', 'active', 'finished'] &&
+             data.createdAt is timestamp &&
+             (!('hostName' in data) || data.hostName is string) &&
+             (!('currentQuestionIndex' in data) || data.currentQuestionIndex is number) &&
+             (!('questionIds' in data) || data.questionIds is list) &&
+             (!('startedAt' in data) || data.startedAt is timestamp);
+    }
+
+    function isValidQuizPlayer() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'displayName', 'score', 'joinedAt']) &&
+             data.uid == request.auth.uid &&
+             data.displayName is string &&
+             data.score is number &&
+             data.joinedAt is timestamp &&
+             (!('lastAnswer' in data) || data.lastAnswer is string) &&
+             (!('lastAnswerCorrect' in data) || data.lastAnswerCorrect is bool);
+    }
+  }
+}

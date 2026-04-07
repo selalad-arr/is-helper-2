@@ -1,0 +1,8 @@
+{
+  "name": "IS Helper 2",
+  "description": "ผู้ช่วยทำโครงงาน IS ด้วย AI ครอบคลุมเนื้อหา IS1, IS2 และ IS3 พร้อมระบบแชทอัจฉริยะ",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "prompt": ""
+}

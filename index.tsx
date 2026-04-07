@@ -1,0 +1,29 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
+import App from './App';
+import AnalyticsTracker from './components/AnalyticsTracker';
+import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider } from './src/contexts/AuthContext';
+import { ApiSettingsProvider } from './src/contexts/ApiSettingsContext';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ApiSettingsProvider>
+          <HashRouter>
+            <AnalyticsTracker />
+            <App />
+          </HashRouter>
+        </ApiSettingsProvider>
+      </AuthProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);
