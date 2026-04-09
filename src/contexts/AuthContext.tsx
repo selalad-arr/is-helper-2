@@ -14,11 +14,15 @@ interface AuthContextType {
   userData: any | null;
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
-  login: (provider?: 'google' | 'facebook' | 'line', role?: 'student' | 'teacher' | 'admin') => Promise<void>;
-  loginWithEmail: (email: string, pass: string, isSignUp: boolean, role?: 'student' | 'teacher' | 'admin') => Promise<void>;
+  login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
+  loginWithEmail: (email: string, pass: string, isSignUp: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   joinClassroom: (classCode: string) => Promise<void>;
+  selectRole: (role: 'student' | 'teacher' | 'admin') => Promise<void>;
+  switchRole: () => Promise<void>;
+  authError: string | null;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -31,6 +35,10 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   updateProfile: async () => {},
   joinClassroom: async () => {},
+  selectRole: async () => {},
+  switchRole: async () => {},
+  authError: null,
+  clearError: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -40,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userData, setUserData] = useState<any | null>(null);
   const [userRole, setUserRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Use refs to track current state for the onAuthStateChanged listener
   const userRef = useRef<any | null>(null);
@@ -83,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (docSnap.exists()) {
               const data = docSnap.data();
               setUserData(data);
-              setUserRole(data.role || 'student');
+              setUserRole(data.role || null);
             } else {
               // Create default doc if missing (e.g. session restored but no DB record exists)
               const defaultData = {
@@ -92,11 +101,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 displayName: currentUser.displayName || '',
                 photoURL: currentUser.photoURL || '',
                 createdAt: serverTimestamp(),
-                role: 'student',
+                role: null,
                 onboardingComplete: false
               };
               setUserData(defaultData);
-              setUserRole('student');
+              setUserRole(null);
               setDoc(userDocRef, defaultData, { merge: true });
             }
             setLoading(false);
@@ -105,12 +114,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
           });
 
-          // Record login history
-          await addDoc(collection(db, 'users', currentUser.uid, 'login_history'), {
+          // Record login history (non-blocking)
+          addDoc(collection(db, 'users', currentUser.uid, 'login_history'), {
             uid: currentUser.uid,
             timestamp: serverTimestamp(),
             userAgent: navigator.userAgent
-          });
+          }).catch(err => console.error("Error recording login history:", err));
         } catch (error) {
           console.error("Error in auth state change:", error);
           setLoading(false);
@@ -161,8 +170,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await updateDoc(classroomDoc.ref, { studentCount: increment(1) });
   };
 
-  const login = async (providerType: 'google' | 'facebook' | 'line' = 'google', role: 'student' | 'teacher' | 'admin' = 'student') => {
+  const clearError = () => setAuthError(null);
+  
+  const login = async (providerType: 'google' | 'facebook' | 'line' = 'google') => {
     setLoading(true);
+    setAuthError(null);
     isLoggingInRef.current = true;
     isMockAdminRef.current = false;
     try {
@@ -182,26 +194,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
         
-        // Optimistically set the role immediately to prevent any UI flashes
-        let finalRole = role;
+        // Ensure the admin mock email retains admin role automatically
+        if (result.user.email === 'admin') {
+          setUserRole('admin');
+          setUserData((prev: any) => ({ ...prev, role: 'admin' }));
+          await setDoc(userDocRef, { role: 'admin' }, { merge: true });
+        }
         
-        // Ensure the admin mock id retains admin role
-        if (result.user.email === 'admin') finalRole = 'admin';
-        
-        setUserRole(finalRole);
-        setUserData((prev: any) => ({ ...prev, role: finalRole }));
-        
-        // We do a merge. If it's a new user, onboardingComplete will be undefined, which is fine until first onSnapshot fires.
+        // We do a merge. We don't set a role here anymore; it will be handled by the Role Selection UI if missing.
         await setDoc(userDocRef, { 
             uid: result.user.uid,
             email: result.user.email || '',
             displayName: result.user.displayName || '',
             photoURL: result.user.photoURL || '',
-            role: finalRole 
         }, { merge: true });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`${providerType} login error:`, error);
+      let message = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+      if (error.code === 'auth/popup-closed-by-user') message = 'การเข้าสู่ระบบถูกยกเลิก';
+      else if (error.code === 'auth/cancelled-popup-request') message = 'คำขอทับซ้อนกัน โปรดลองใหม่';
+      else if (error.code === 'auth/unauthorized-domain') message = 'โดเมนนี้ไม่ได้รับอนุญาตให้ใช้ Login';
+      
+      setAuthError(message);
       throw error;
     } finally {
       isLoggingInRef.current = false;
@@ -209,8 +224,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithEmail = async (email: string, pass: string, isSignUp: boolean, role: 'student' | 'teacher' | 'admin' = 'student') => {
+  const loginWithEmail = async (email: string, pass: string, isSignUp: boolean) => {
     setLoading(true);
+    setAuthError(null);
     try {
       // Hardcoded Admin Credentials
       if ((email === 'admin' && pass === 'admin')) {
@@ -245,34 +261,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: result.user.email || '',
             displayName: result.user.displayName || '',
             photoURL: result.user.photoURL || '',
-            role: role,
+            role: null,
             createdAt: serverTimestamp(),
             onboardingComplete: false
           });
         }
       } else {
         const result = await signInWithEmailAndPassword(auth, email, pass);
-        if (result.user) {
-          const userDocRef = doc(db, 'users', result.user.uid);
-          const docSnap = await getDoc(userDocRef);
-          if (!docSnap.exists()) {
-            await setDoc(userDocRef, {
-              uid: result.user.uid,
-              email: result.user.email || '',
-              displayName: result.user.displayName || '',
-              photoURL: result.user.photoURL || '',
-              role: role,
-              createdAt: serverTimestamp(),
-              onboardingComplete: false
-            });
-          } else {
-            await setDoc(userDocRef, { role: role }, { merge: true });
-          }
-        }
+        // Role will be fetched from Firestore in onAuthStateChanged/onSnapshot
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Email auth error:", error);
+      let message = 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์';
+      if (error.code === 'auth/user-not-found') message = 'ไม่พบผู้ใช้นี้ในระบบ';
+      else if (error.code === 'auth/wrong-password') message = 'รหัสผ่านไม่ถูกต้อง';
+      else if (error.code === 'auth/email-already-in-use') message = 'อีเมลนี้ถูกใช้งานแล้ว';
+      else if (error.code === 'auth/invalid-email') message = 'รูปแบบอีเมลไม่ถูกต้อง';
+      
+      setAuthError(message);
       throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectRole = async (role: 'student' | 'teacher' | 'admin') => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { role }, { merge: true });
+      setUserRole(role);
+      setUserData((prev: any) => ({ ...prev, role }));
+    } catch (error) {
+      console.error("Error selecting role:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchRole = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      // Explicitly set role to null in Firestore to trigger the modal correctly across sessions
+      await setDoc(userDocRef, { role: null }, { merge: true });
+      setUserRole(null);
+      setUserData((prev: any) => ({ ...prev, role: null }));
+    } catch (error) {
+      console.error("Error switching role:", error);
     } finally {
       setLoading(false);
     }
@@ -307,7 +346,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginWithEmail, 
       logout,
       updateProfile,
-      joinClassroom
+      joinClassroom,
+      selectRole,
+      switchRole,
+      authError,
+      clearError
     }}>
       {children}
     </AuthContext.Provider>

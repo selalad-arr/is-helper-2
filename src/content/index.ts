@@ -12,7 +12,7 @@ export const tutorialCard = {
     description: 'เรียนรู้วิธีการใช้งานฟีเจอร์ต่างๆ ของแอปพลิเคชัน ตั้งแต่การตั้งค่าครั้งแรกไปจนถึงการใช้ AI ช่วยทำโครงงาน',
     icon: 'QuestionMarkCircleIcon',
     color: 'from-slate-500 to-slate-700',
-    path: '/tutorial',
+    path: '/student/tutorial',
     buttonText: 'ดูวิธีใช้',
 };
 

@@ -9,6 +9,6 @@ export const projectCreationConfig = {
     welcomeMessage: "สวัสดีจ้า! พร้อมที่จะเริ่มการผจญภัยสร้างโครงงานสุดเจ๋งหรือยัง? มีไอเดียอะไรสนุกๆ ในหัว หรืออยากให้พี่ AI ช่วยเริ่มจากตรงไหน บอกมาได้เลยนะ พี่พร้อมลุยไปกับน้องๆ แล้ว!",
     icon: 'AcademicCapIcon',
     color: 'from-sky-400 to-blue-500',
-    path: '/project_creation',
+    path: '/student/project_creation',
     buttonText: 'เริ่มการผจญภัยเลย!',
 };

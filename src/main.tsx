@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -18,10 +18,10 @@ root.render(
     <ErrorBoundary>
       <AuthProvider>
         <ApiSettingsProvider>
-          <HashRouter>
+          <BrowserRouter>
             <AnalyticsTracker />
             <App />
-          </HashRouter>
+          </BrowserRouter>
         </ApiSettingsProvider>
       </AuthProvider>
     </ErrorBoundary>

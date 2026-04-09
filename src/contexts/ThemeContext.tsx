@@ -19,7 +19,7 @@ const getInitialTheme = (): Theme => {
     } catch (error) {
         console.warn("Could not read theme from localStorage:", error);
     }
-    return 'light'; // Default to light mode for a bright theme
+    return 'dark'; // Default to dark mode
 };
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

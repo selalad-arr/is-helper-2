@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import jsPDF from 'jspdf';
 import { trackEvent } from '../services/analyticsService';
 import { DocumentArrowDownIcon } from '../ui/icons';
 import PrintableReport from './PrintableReport';
@@ -38,6 +37,7 @@ const ReportGenStep3Compile: React.FC<Step3Props> = (props) => {
         });
         
         try {
+            const jsPDF = (await import('jspdf')).default;
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'pt',
@@ -83,7 +83,7 @@ const ReportGenStep3Compile: React.FC<Step3Props> = (props) => {
         }
     };
 
-    const inputClasses = "w-full p-3.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-slate-800 placeholder:text-slate-400 resize-y";
+    const inputClasses = "w-full p-3.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y";
     const labelClasses = "flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2";
 
     return (
@@ -135,7 +135,7 @@ const ReportGenStep3Compile: React.FC<Step3Props> = (props) => {
                 transition={{ delay: 0.1 }}
                 className="bg-slate-100 dark:bg-slate-800/50 p-4 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-700/60"
             >
-                <div className="bg-white shadow-xl shadow-slate-200/50 dark:shadow-none p-6 md:p-10 w-full max-w-4xl text-slate-800 mx-auto rounded-2xl border border-slate-100 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none p-6 md:p-10 w-full max-w-4xl text-slate-800 dark:text-slate-200 mx-auto rounded-2xl border border-slate-100 dark:border-slate-700">
                     <div className="text-center mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">ตรวจสอบข้อมูลสำหรับปกและส่วนหน้า</h2>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">ข้อมูลเหล่านี้จะปรากฏในส่วนต้นของรายงาน</p>

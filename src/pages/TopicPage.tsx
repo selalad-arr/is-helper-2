@@ -32,7 +32,7 @@ export const TopicPage = () => {
 
     useEffect(() => {
         if (!config || !('topics' in config)) {
-            navigate('/');
+            navigate('/menu');
         }
     }, [config, navigate]);
 
@@ -70,7 +70,7 @@ export const TopicPage = () => {
         
         lessonPlanLink = (
             <Link 
-                to={`/lesson-plan/${isKey}/${topicIndexNum}`} 
+                to={`/student/lesson-plan/${isKey}/${topicIndexNum}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 title={fullLinkText}
@@ -91,7 +91,7 @@ export const TopicPage = () => {
                 updateProgressData({ [`visited_${isKey}`]: newVisited });
             }
         }
-        navigate(`/${isKey}`);
+        navigate(`/student/${isKey}`);
     };
 
     return (
@@ -102,7 +102,7 @@ export const TopicPage = () => {
             className="py-6 md:py-8 px-4 md:px-0"
         >
              <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <button onClick={() => navigate(`/${isKey}`)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-medium text-sm md:text-base">
+                <button onClick={() => navigate(`/student/${isKey}`)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-medium text-sm md:text-base">
                     <ArrowLeftIcon className="w-4 h-4 md:w-5 md:h-5"/>
                     กลับไปที่เนื้อหา
                 </button>

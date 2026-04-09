@@ -9,6 +9,6 @@ export const is1Config = {
     welcomeMessage: "สวัสดีครับ/ค่ะ มีอะไรให้ช่วยเกี่ยวกับ IS1 (การศึกษาค้นคว้า) บ้างครับ/คะ? สามารถสอบถามเกี่ยวกับเนื้อหาในบทเรียนหรือกิจกรรมต่างๆ ได้เลยครับ/ค่ะ",
     icon: 'BookOpenIcon',
     color: 'from-sky-500 to-blue-600',
-    path: '/is1',
+    path: '/student/is1',
     buttonText: 'เริ่มต้นเรียนรู้',
 };

@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApiSettings } from '../../contexts/ApiSettingsContext';
-import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon } from '../../ui/icons';
+import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon, AcademicCapIcon, CheckCircleIcon } from '../../ui/icons';
 
 export const Header = () => {
-    const { user, login, logout } = useAuth();
+    const { user, userRole, login, logout, switchRole } = useAuth();
     const { useFreeQuota, quotaUsed, customApiKey } = useApiSettings();
 
     const handleShare = async () => {
@@ -31,11 +31,11 @@ export const Header = () => {
     return (
         <header className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 border-b border-slate-200/50 dark:border-slate-800/50">
             <div className="container mx-auto flex items-center justify-between">
-                 <Link to="/" className="flex items-center gap-2 group">
+                 <Link to={userRole === 'student' ? '/student' : (user && userRole === 'teacher') ? '/teacher' : (user && userRole === 'admin') ? '/admin' : (user ? '/menu' : '/')} className="flex items-center gap-2 group">
                     <div className="bg-sky-500/10 text-sky-600 dark:text-sky-400 p-2 rounded-xl group-hover:bg-sky-500/20 transition-colors">
                         <BookOpenIcon className="w-6 h-6" />
                     </div>
-                    <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300">
+                    <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-400">
                         IS Helper
                     </h1>
                 </Link>
@@ -53,21 +53,64 @@ export const Header = () => {
                         </div>
                     )}
                     {user ? (
-                        <div className="flex items-center gap-2 mr-2 ml-2">
-                            {user.photoURL && <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />}
-                            <button onClick={logout} className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
-                                ออกจากระบบ
-                            </button>
+                        <div className="flex items-center gap-3 mr-2 ml-2">
+                            {user.photoURL && (
+                                <img 
+                                    src={user.photoURL} 
+                                    alt="Profile" 
+                                    className="w-8 h-8 rounded-full border-2 border-sky-200 dark:border-sky-800 shadow-sm" 
+                                    referrerPolicy="no-referrer" 
+                                />
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">
+                                    {userRole === 'admin' ? 'ผู้ดูแลระบบ' : userRole === 'teacher' ? 'คุณครู' : 'นักเรียน'}
+                                </span>
+                                <button 
+                                    onClick={logout} 
+                                    className="text-xs font-bold text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition-colors text-left"
+                                >
+                                    ออกจากระบบ
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <button onClick={() => login()} className="mr-2 ml-2 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+                        <button onClick={() => login()} className="mr-2 ml-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-sky-500/20 active:scale-95">
                             เข้าสู่ระบบ
                         </button>
                     )}
-                    <Link to="/" title="หน้าแรก" className="hidden md:flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
-                        <HomeIcon className="w-5 h-5" />
-                        หน้าแรก
-                    </Link>
+
+                    {user && (
+                        <div className="hidden md:flex items-center gap-2">
+                             <Link to={userRole === 'student' ? '/student' : '/'} title="หน้าแรก" className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all font-bold text-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                <HomeIcon className="w-5 h-5 text-sky-500" />
+                                <span>หน้าแรก</span>
+                            </Link>
+
+                            {userRole === 'admin' && (
+                                <Link to="/admin" title="แผงควบคุมผู้ดูแล" className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all font-bold text-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                    <CheckCircleIcon className="w-5 h-5 text-rose-500" />
+                                    <span>จัดการระบบ</span>
+                                </Link>
+                            )}
+
+                            {userRole === 'teacher' && (
+                                <Link to="/teacher" title="แดชบอร์ดคุณครู" className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all font-bold text-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                    <AcademicCapIcon className="w-5 h-5 text-emerald-500" />
+                                    <span>แดชบอร์ดครู</span>
+                                </Link>
+                            )}
+                            
+                            <button 
+                                onClick={switchRole}
+                                title="สลับสถานะการใช้งาน"
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all font-bold text-sm border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <ShareIcon className="w-4 h-4 rotate-180 text-emerald-500" />
+                                <span>สลับสถานะ</span>
+                            </button>
+                        </div>
+                    )}
                     <button 
                         onClick={handleShare}
                         title="แชร์แอป"

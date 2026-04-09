@@ -1,12 +1,18 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
 import { ThemeProvider } from './contexts/ThemeContext';
-import SettingsPage from './pages/SettingsPage';
-import LessonPlanPage from './pages/LessonPlanPage';
-import TutorialPage from './pages/TutorialPage';
-import { TeacherDashboard } from './pages/TeacherDashboard';
-import { AdminPanel } from './pages/AdminPanel';
+
+// --- Lazy Load Pages ---
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const ISPage = lazy(() => import('./pages/ISPage').then(m => ({ default: m.ISPage })));
+const TopicPage = lazy(() => import('./pages/TopicPage').then(m => ({ default: m.TopicPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const LessonPlanPage = lazy(() => import('./pages/LessonPlanPage'));
+const TutorialPage = lazy(() => import('./pages/TutorialPage'));
+const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
+const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const RoleSelectionPage = lazy(() => import('./pages/RoleSelectionPage').then(m => ({ default: m.RoleSelectionPage })));
 import { StudentOnboarding } from './components/StudentOnboarding';
 import FloatingChatWidget from './components/FloatingChatWidget';
 import { useAuth } from './contexts/AuthContext';
@@ -18,10 +24,16 @@ import { ICONS } from './ui/icons';
 import { Header } from './components/layout/Header';
 import { BottomNav } from './components/layout/BottomNav';
 
-// Page Components
-import { HomePage } from './pages/HomePage';
-import { ISPage } from './pages/ISPage';
-import { TopicPage } from './pages/TopicPage';
+// --- Loading Component ---
+const PageLoader = () => (
+    <div className="flex flex-col items-center justify-center p-12 min-h-[50vh] animate-in fade-in duration-500">
+        <div className="relative w-16 h-16">
+            <div className="absolute inset-0 border-4 border-sky-500/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-t-sky-500 rounded-full animate-spin"></div>
+        </div>
+        <p className="mt-4 text-slate-500 dark:text-slate-400 font-medium animate-pulse text-sm">กำลังเปิดหน้า...</p>
+    </div>
+);
 
 const BookOpenIcon = ICONS.BookOpenIcon;
 
@@ -36,31 +48,70 @@ const MainRoutes = () => {
     }, [location.pathname]);
 
     const renderHome = () => {
-        if (!user) return <HomePage />;
-        if (userRole === 'admin') return <AdminPanel />;
-        if (userRole === 'teacher') return <TeacherDashboard />;
-        
         return <HomePage />;
     };
 
     return (
-        <AnimatePresence mode="wait">
-            <Routes location={location}>
-                <Route path="/" element={renderHome()} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/tutorial" element={<TutorialPage />} />
-                <Route path="/:isKey" element={<ISPage />} />
-                <Route path="/:isKey/:topicIndex" element={<TopicPage />} />
-                <Route path="/lesson-plan/:isKey/:topicIndex" element={<LessonPlanPage />} />
-                <Route path="*" element={renderHome()} />
-            </Routes>
-        </AnimatePresence>
+        <Suspense fallback={<PageLoader />}>
+            <AnimatePresence mode="wait">
+                <Routes location={location}>
+                    <Route path="/" element={
+                        user ? (
+                            !userRole ? <Navigate to="/menu" replace /> :
+                            userRole === 'admin' ? <Navigate to="/admin" replace /> :
+                            userRole === 'teacher' ? <Navigate to="/teacher" replace /> :
+                            <Navigate to="/student" replace />
+                        ) : renderHome()
+                    } />
+                    
+                    {/* Role Selection */}
+                    <Route path="/menu" element={user ? <RoleSelectionPage /> : <Navigate to="/" replace />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin/*" element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/menu" replace />} />
+                    
+                    {/* Teacher Routes */}
+                    <Route path="/teacher/*" element={userRole === 'teacher' ? <TeacherDashboard /> : <Navigate to="/menu" replace />} />
+                    
+                    {/* Student Routes */}
+                    <Route path="/student" element={userRole === 'student' ? <HomePage /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/onboarding" element={userRole === 'student' ? <StudentOnboarding /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/:isKey" element={userRole === 'student' ? <ISPage /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/:isKey/:topicIndex" element={userRole === 'student' ? <TopicPage /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/lesson-plan/:isKey/:topicIndex" element={userRole === 'student' ? <LessonPlanPage /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/tutorial" element={userRole === 'student' ? <TutorialPage /> : <Navigate to="/menu" replace />} />
+                    
+                    {/* Global Routes */}
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </AnimatePresence>
+        </Suspense>
     );
 };
 
 
 const AppContent = () => {
     const { loading } = useAuth();
+    const [loadingProgress, setLoadingProgress] = React.useState(0);
+
+    React.useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (loading) {
+            setLoadingProgress(0);
+            interval = setInterval(() => {
+                setLoadingProgress(prev => {
+                    const increment = Math.floor(Math.random() * 10) + 2; 
+                    const next = prev + increment;
+                    return next > 90 ? 90 : next;
+                });
+            }, 300);
+        } else {
+            setLoadingProgress(100);
+        }
+        return () => clearInterval(interval);
+    }, [loading]);
+
     const chatConfig = {
         title: "ผู้ช่วย IS",
         systemPrompt: "คุณคือผู้ช่วยให้คำปรึกษาสำหรับนักเรียนที่ทำโครงงาน IS (Independent Study) หน้าที่ของคุณคือตอบคำถาม ให้คำแนะนำ และช่วยอธิบายเนื้อหาที่ซับซ้อนให้เข้าใจง่ายขึ้น โดยใช้ภาษาที่เป็นกันเองแต่สุภาพ",
@@ -68,12 +119,45 @@ const AppContent = () => {
         chatContext: "global_assistant"
     };
 
-    if (loading) {
+    // Local override for loading state to prevent stalls
+    const [forceNotLoading, setForceNotLoading] = useState(false);
+    useEffect(() => {
+        if (loading) {
+            const timer = setTimeout(() => {
+                console.warn("Loading timeout reached. Forcing UI to show.");
+                setForceNotLoading(true);
+            }, 10000);
+            return () => clearTimeout(timer);
+        } else {
+            setForceNotLoading(false);
+        }
+    }, [loading]);
+
+    if (loading && !forceNotLoading) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm animate-pulse font-medium">กำลังโหลดข้อมูล...</p>
+                <div className="flex flex-col items-center gap-6 w-full max-w-xs">
+                    <div className="relative">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-sky-500"></div>
+                        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-sky-600 dark:text-sky-400">
+                            {loadingProgress}%
+                        </div>
+                    </div>
+                    <div className="w-full space-y-2">
+                        <div className="flex justify-between items-end">
+                            <span className="text-slate-500 dark:text-slate-400 text-sm animate-pulse font-medium">กำลังโหลดข้อมูลและซิงค์กับฐานข้อมูล...</span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
+                            <div 
+                                className="h-full rounded-full bg-linear-to-r from-sky-400 to-indigo-500 transition-all duration-300 ease-out flex items-center justify-end px-2"
+                                style={{ width: `${loadingProgress}%` }}
+                            >
+                                {loadingProgress > 20 && (
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping opacity-75"></div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

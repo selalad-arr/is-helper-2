@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import jsPDF from 'jspdf';
 import { DocumentArrowDownIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
 import { useFirestoreData } from '../hooks/useFirestore';
@@ -164,6 +163,7 @@ const IS3ProjectPlanner = () => {
             }
             
             try {
+                const jsPDF = (await import('jspdf')).default;
                 const pdf = new jsPDF({
                     orientation: 'portrait',
                     unit: 'pt',

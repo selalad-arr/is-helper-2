@@ -9,6 +9,6 @@ export const is2Config = {
     welcomeMessage: "สวัสดีครับ/ค่ะ มีอะไรให้ช่วยเกี่ยวกับ IS2 (การสื่อสารและนำเสนอ) บ้างครับ/คะ? สามารถถามเรื่องการทำรายงาน, การออกแบบสไลด์, หรือเทคนิคการพรีเซนต์ได้เลย",
     icon: 'PresentationChartBarIcon',
     color: 'from-blue-500 to-indigo-600',
-    path: '/is2',
+    path: '/student/is2',
     buttonText: 'เริ่มต้นเรียนรู้',
 };

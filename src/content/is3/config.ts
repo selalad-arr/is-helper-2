@@ -9,6 +9,6 @@ export const is3Config = {
     welcomeMessage: "สวัสดีครับ/ค่ะ มีอะไรให้ช่วยเกี่ยวกับ IS3 (การบริการสังคม) บ้างครับ/คะ? ลองปรึกษาเรื่องการคิดโครงการเพื่อชุมชน หรือการนำความรู้ไปใช้จริงได้เลย",
     icon: 'UsersIcon',
     color: 'from-cyan-500 to-sky-600',
-    path: '/is3',
+    path: '/student/is3',
     buttonText: 'เริ่มต้นบริการสังคม',
 };
