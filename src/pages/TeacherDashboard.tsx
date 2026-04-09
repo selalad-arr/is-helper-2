@@ -477,8 +477,7 @@ export const TeacherDashboard: React.FC = () => {
     setError(null);
     const q = query(
       collection(db, 'users'),
-      where('classId', '==', selectedClassroom.id),
-      where('role', '==', 'student')
+      where('classId', '==', selectedClassroom.id)
     );
 
     console.log("TeacherDashboard: Fetching students for classId:", selectedClassroom.id);
@@ -791,11 +790,6 @@ export const TeacherDashboard: React.FC = () => {
                                           <div className="flex flex-col items-center gap-3">
                                               <UsersIcon className="w-12 h-12 text-slate-200" />
                                               <p className="text-slate-400 font-bold italic">ยังไม่มีนักเรียนเข้าร่วมห้องเรียนนี้ หรือกำลังโหลดข้อมูล...</p>
-                                              {selectedClassroom.studentCount > 0 && (
-                                                  <p className="text-[10px] text-slate-400 mt-2 bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
-                                                      ตรวจพบจำนวนนักเรียนในฐานข้อมูล {selectedClassroom.studentCount} คน แต่รายชื่อถูกกรองออก (ตรวจสอบว่านักเรียนเลือกบทบาท Student หรือยัง)
-                                                  </p>
-                                              )}
                                           </div>
                                       </td></tr>
                                   ) : (
@@ -820,7 +814,7 @@ export const TeacherDashboard: React.FC = () => {
                                                           </div>
                                                           <div>
                                                               <div className="font-black text-slate-900 dark:text-white uppercase leading-tight group-hover:text-sky-600 transition-colors">{s.displayName || 'ไม่มีชื่อ'}</div>
-                                                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">เลขที่ {s.classNo || '??'} • {s.email.split('@')[0]}</div>
+                                                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">เลขที่ {s.classNo || '??'} • {(s.email || '').split('@')[0] || 'Unknown'}</div>
                                                           </div>
                                                       </div>
                                                   </td>
