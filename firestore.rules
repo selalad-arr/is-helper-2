@@ -116,7 +116,7 @@ service cloud.firestore {
     // ===============================================================
     function isValidUser() {
       return hasRequiredFields(['uid', 'email']) &&
-             hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'aiQuotaUsed', 'lastQuotaDate', 'role', 'school', 'grade', 'classNo', 'classId', 'onboardingComplete']) &&
+              hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'aiQuotaUsed', 'lastQuotaDate', 'role', 'school', 'grade', 'classNo', 'classId', 'onboardingComplete', 'classroomIds']) &&
              request.resource.data.uid is string &&
              request.resource.data.email is string &&
              isValidOptionalString('displayName', 0, 100) &&
@@ -129,7 +129,8 @@ service cloud.firestore {
              isValidOptionalString('grade', 0, 50) &&
              isValidOptionalString('classNo', 0, 50) &&
              isValidOptionalString('classId', 0, 100) &&
-             (!('onboardingComplete' in request.resource.data) || request.resource.data.onboardingComplete is bool);
+             (!('onboardingComplete' in request.resource.data) || request.resource.data.onboardingComplete is bool) &&
+             (!('classroomIds' in request.resource.data) || request.resource.data.classroomIds is list);
     }
 
     function isValidClassroom() {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { IS_CONFIG } from '../content';
 import { ICONS, ChevronRightIcon } from '../ui/icons';
@@ -11,7 +11,8 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { useEffect } from 'react';
 
 export const HomePage = () => {
-    const { user, userData, userRole, joinClassroom } = useAuth();
+    const { user, userData, userRole, joinClassroom, selectClassroom } = useAuth();
+    const navigate = useNavigate();
     const [classCode, setClassCode] = useState('');
     const [isJoining, setIsJoining] = useState(false);
     const [joinError, setJoinError] = useState('');
@@ -33,6 +34,29 @@ export const HomePage = () => {
 
         return unsubscribe;
     }, [user, userRole]);
+
+    // Redirect if classroom deleted
+    useEffect(() => {
+        if (userRole === 'student' && userData?.classId) {
+            const { onSnapshot, doc } = import('firebase/firestore');
+            let unsubscribe: () => void;
+            
+            import('firebase/firestore').then(firestore => {
+                const classroomRef = firestore.doc(db, 'classrooms', userData.classId);
+                unsubscribe = firestore.onSnapshot(classroomRef, (docSnap) => {
+                    if (!docSnap.exists()) {
+                        console.log("Current classroom deleted, redirecting to selection...");
+                        selectClassroom(null);
+                        navigate('/student');
+                    }
+                });
+            });
+
+            return () => {
+                if (unsubscribe) unsubscribe();
+            };
+        }
+    }, [userRole, userData?.classId, navigate, selectClassroom]);
 
     const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -107,66 +131,35 @@ export const HomePage = () => {
                                 </div>
                             )}
 
-                            {user && userRole === 'student' && !userData?.classId && (
-                                <div className="w-full">
-                                    {!showJoinForm ? (
-                                        <button 
-                                            onClick={() => setShowJoinForm(true)}
+                            {user && userRole === 'student' && (
+                                <div className="w-full flex flex-wrap gap-4 items-center">
+                                    {userData?.classId ? (
+                                        <div className="inline-flex items-center gap-4 px-6 py-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-[1.5rem] border border-emerald-100 dark:border-emerald-800/30">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                                                <ICONS.CheckIcon className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">กำลังใช้งานห้องเรียน</div>
+                                                <div className="font-black text-emerald-800 dark:text-emerald-400">เข้าสู่ระบบห้องเรียนสำเร็จ</div>
+                                            </div>
+                                            <Link 
+                                                to="/student"
+                                                className="ml-4 px-4 py-2 bg-white dark:bg-slate-800 text-[10px] font-black text-slate-500 hover:text-sky-500 rounded-xl border border-slate-200 dark:border-slate-700 transition-all uppercase tracking-widest"
+                                            >
+                                                สลับห้องเรียน
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <Link 
+                                            to="/student"
                                             className="group flex items-center gap-4 px-8 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black uppercase tracking-widest rounded-3xl border border-slate-200 dark:border-slate-700 hover:border-sky-500 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all hover:-translate-y-1 active:scale-95 text-xs"
                                         >
                                             <div className="p-2 bg-sky-50 dark:bg-sky-900/30 rounded-xl group-hover:scale-110 transition-transform">
                                                 <ICONS.UsersIcon className="w-5 h-5 text-sky-500" />
                                             </div>
-                                            เข้าร่วมห้องเรียนของครู
-                                        </button>
-                                    ) : (
-                                        <motion.form 
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            onSubmit={handleJoin}
-                                            className="max-w-md p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border-2 border-sky-500 shadow-2xl shadow-sky-500/10"
-                                        >
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">กรอกรหัสห้องเรียน 🔑</h3>
-                                            <input 
-                                                autoFocus
-                                                type="text"
-                                                value={classCode}
-                                                onChange={(e) => setClassCode(e.target.value.toUpperCase())}
-                                                placeholder="รหัส 6 หลัก"
-                                                className="w-full px-6 py-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 text-center font-black text-3xl tracking-[0.5em] focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none mb-6 transition-all"
-                                                maxLength={6}
-                                            />
-                                            {joinError && <p className="text-red-500 text-xs font-bold mb-6 text-center">❌ {joinError}</p>}
-                                            <div className="flex gap-4">
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => setShowJoinForm(false)}
-                                                    className="flex-1 py-4 text-slate-500 font-black uppercase tracking-widest text-[10px]"
-                                                >
-                                                    ยกเลิก
-                                                </button>
-                                                <button 
-                                                    type="submit"
-                                                    disabled={isJoining}
-                                                    className="flex-1 py-4 bg-sky-500 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-500/20 disabled:opacity-50 text-[10px]"
-                                                >
-                                                    {isJoining ? '...' : 'เข้าร่วมห้องเรียน'}
-                                                </button>
-                                            </div>
-                                        </motion.form>
+                                            ตั้งค่าห้องเรียน / แลกเปลี่ยนห้อง
+                                        </Link>
                                     )}
-                                </div>
-                            )}
-
-                            {user && userRole === 'student' && userData?.classId && (
-                                <div className="inline-flex items-center gap-4 px-6 py-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-[1.5rem] border border-emerald-100 dark:border-emerald-800/30">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                                        <ICONS.CheckIcon className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">ยินดีด้วย</div>
-                                        <div className="font-black text-emerald-800 dark:text-emerald-400">คุณอยู่ในห้องเรียนแล้ว</div>
-                                    </div>
                                 </div>
                             )}
                         </div>

@@ -44,7 +44,7 @@ export const ISPage = () => {
             className="py-6 md:py-8 px-4 md:px-0"
         >
             <div className="mb-6 md:mb-8">
-                <button onClick={() => navigate('/menu')} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-medium text-sm md:text-base">
+                <button onClick={() => navigate('/student/dashboard')} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-medium text-sm md:text-base">
                     <ArrowLeftIcon className="w-4 h-4 md:w-5 md:h-5"/>
                     กลับหน้าหลัก
                 </button>

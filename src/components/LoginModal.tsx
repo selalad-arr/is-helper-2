@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ICONS } from '../ui/icons';
 
 export const LoginModal: React.FC = () => {
-    const { user, userRole, loading, login, loginWithEmail, selectRole, authError, clearError, logout } = useAuth();
+    const { user, userRole, loading, login, selectRole, authError, clearError, logout } = useAuth();
     const location = useLocation();
     const BookOpenIcon = ICONS.BookOpenIcon;
     const AcademicCapIcon = ICONS.AcademicCapIcon;
@@ -91,37 +91,13 @@ export const LoginModal: React.FC = () => {
                 )}
                 เข้าสู่ระบบด้วย Google
             </button>
-            <button
-                onClick={async () => {
-                    setIsSubmitting(true);
-                    try {
-                        await loginWithEmail('teacher@test.com', 'password123', true).catch(() => loginWithEmail('teacher@test.com', 'password123', false));
-                    } catch(e) {} finally { setIsSubmitting(false) }
-                }}
-                className="w-full flex items-center justify-center gap-4 px-6 py-2 bg-purple-500 text-white rounded-xl font-bold hover:bg-purple-600 transition-all text-sm mb-2 mt-4"
-            >
-                Login as Test Teacher
-            </button>
-            <button
-                onClick={async () => {
-                    setIsSubmitting(true);
-                    try {
-                        await loginWithEmail('student@test.com', 'password123', true).catch(() => loginWithEmail('student@test.com', 'password123', false));
-                    } catch(e) {} finally { setIsSubmitting(false) }
-                }}
-                className="w-full flex items-center justify-center gap-4 px-6 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all text-sm mb-4"
-            >
-                Login as Test Student
-            </button>
-            
+
             <div className="relative mt-2">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
                     <div className="w-full border-t border-slate-100 dark:border-slate-700/50"></div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase font-bold tracking-widest text-slate-400 bg-white dark:bg-slate-800 px-4">
-                    Secure Access
-                </div>
             </div>
+
 
             <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center px-4 leading-relaxed font-medium">
                 การเข้าสู่ระบบแสดงว่าคุณยอมรับข้อตกลงการใช้งานและนโยบายความเป็นส่วนตัวของเรา

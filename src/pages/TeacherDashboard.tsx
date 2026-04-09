@@ -881,7 +881,15 @@ export const TeacherDashboard: React.FC = () => {
                                       <div className="p-4 bg-linear-to-br from-sky-100 to-sky-50 dark:from-sky-900/30 dark:to-indigo-900/30 text-sky-500 rounded-3xl shadow-inner group-hover:rotate-6 transition-transform">
                                           <AcademicCapIcon className="w-8 h-8" />
                                       </div>
-                                      <button onClick={() => handleDeleteClass(c.id)} className="p-2.5 text-slate-300 hover:text-red-500 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-slate-100 dark:border-slate-800">
+                                      <button 
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleDeleteClass(c.id);
+                                        }} 
+                                        className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all border border-slate-100 dark:border-slate-800 shadow-sm"
+                                        title="ลบห้องเรียน"
+                                      >
                                           <TrashIcon className="w-5 h-5" />
                                       </button>
                                   </div>
@@ -909,11 +917,17 @@ export const TeacherDashboard: React.FC = () => {
   };
 
   const handleDeleteClass = async (id: string) => {
-    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้?')) {
+    if (window.confirm('หากคุณลบห้องเรียนนี้ ข้อมูลสมาชิกนักเรียนจะถูกยกเลิกการเข้าถึงห้องเรียนนี้ทันที คุณแน่ใจหรือไม่?')) {
       try {
         await deleteDoc(doc(db, 'classrooms', id));
-      } catch (err) {
+        // Find if this was the selected classroom and clear it if so
+        if (selectedClassroom?.id === id) {
+           setSelectedClassroom(null);
+           navigate('/teacher/classrooms');
+        }
+      } catch (err: any) {
         console.error("Error deleting class:", err);
+        alert('ไม่สามารถลบห้องเรียนได้: ' + err.message);
       }
     }
   };
