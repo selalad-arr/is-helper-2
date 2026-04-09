@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'THSarabunPSK';
+  src: url('/fonts/THSarabun.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'THSarabunPSK';
+  src: url('/fonts/THSarabun Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'THSarabunPSK';
+  src: url('/fonts/THSarabun Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'THSarabunPSK';
+  src: url('/fonts/THSarabun BoldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
 @theme {
   --font-sans: "Sarabun", ui-sans-serif, system-ui, sans-serif;
 }

@@ -10,13 +10,13 @@ const PagePreview: React.FC<React.PropsWithChildren<{ className?: string, style?
 );
 
 const pdfStyles: { [key: string]: React.CSSProperties } = {
-    chapterTitle: { fontFamily: 'Sarabun, sans-serif', fontWeight: 700, fontSize: '22pt', textAlign: 'center', marginBottom: '2rem', lineHeight: 1.4 },
-    mainHeading: { fontFamily: 'Sarabun, sans-serif', fontWeight: 700, fontSize: '18pt', marginBottom: '0.5rem' },
-    bodyText: { fontFamily: 'Sarabun, sans-serif', fontWeight: 400, fontSize: '16pt', lineHeight: 1.7 },
-    bodyTextJustify: { fontFamily: 'Sarabun, sans-serif', fontWeight: 400, fontSize: '16pt', textIndent: '2.5rem', textAlign: 'justify', lineHeight: 1.7 },
-    coverTitle: { fontFamily: 'Sarabun, sans-serif', fontWeight: 700, fontSize: '28pt', marginTop: '1rem', lineHeight: 1.3, wordBreak: 'break-word' },
-    coverAuthor: { fontFamily: 'Sarabun, sans-serif', fontWeight: 700, fontSize: '18pt', whiteSpace: 'pre-wrap' },
-    tocEntry: { fontFamily: 'Sarabun, sans-serif', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' },
+    chapterTitle: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 700, fontSize: '22pt', textAlign: 'center', marginBottom: '2rem', lineHeight: 1.4 },
+    mainHeading: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 700, fontSize: '18pt', marginBottom: '0.5rem' },
+    bodyText: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 400, fontSize: '16pt', lineHeight: 1.7 },
+    bodyTextJustify: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 400, fontSize: '16pt', textIndent: '2.5rem', textAlign: 'justify', lineHeight: 1.7 },
+    coverTitle: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 700, fontSize: '28pt', marginTop: '1rem', lineHeight: 1.3, wordBreak: 'break-word' },
+    coverAuthor: { fontFamily: 'THSarabunPSK, sans-serif', fontWeight: 700, fontSize: '18pt', whiteSpace: 'pre-wrap' },
+    tocEntry: { fontFamily: 'THSarabunPSK, sans-serif', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' },
     tocDots: { flexGrow: 1, borderBottom: '1px dotted #333', margin: '0 0.5rem', transform: 'translateY(-4px)' }
 };
 
@@ -98,7 +98,7 @@ const PrintableReport: React.FC<any> = ({
                 <h1 style={pdfStyles.chapterTitle}>เอกสารอ้างอิง</h1>
                 <p style={pdfStyles.bodyText} dangerouslySetInnerHTML={{ __html: references.replace(/\n/g, '<br />') || '[ยังไม่ได้กรอกเอกสารอ้างอิง]' }}></p>
                  <div style={{ textAlign: 'center', paddingTop: '50pt' }}>
-                     <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'Sarabun, sans-serif' }}>
+                     <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'THSarabunPSK, sans-serif' }}>
                         สร้างมาจาก IS Helper
                     </p>
                 </div>
