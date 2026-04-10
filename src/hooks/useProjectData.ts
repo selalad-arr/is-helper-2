@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Hook to manage project data with lazy loading.
@@ -12,9 +13,13 @@ import { useParams } from 'react-router-dom';
  * - user_projects/{uid}/details/{isType}: Heavy content (research data, concepts)
  */
 export const useProjectData = (sectionOverride?: string) => {
+    const { user, userData } = useAuth();
     // 1. Auto-detect IS section from URL (e.g., /is1/0 -> isKey = 'is1')
     const { isKey } = useParams<{ isKey: string }>();
     const currentIsType = (sectionOverride || isKey)?.toLowerCase();
+
+    // Context Info
+    const contextId = userData?.classId || 'personal';
 
     // Basic fields (always from main doc)
     const [independentProjectTitle, setIndependentProjectTitle] = useState('');
@@ -32,77 +37,83 @@ export const useProjectData = (sectionOverride?: string) => {
 
     // 2. Fetch MAIN Project Data (Titles, Selected Type)
     useEffect(() => {
-        const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-            if (user) {
-                const docRef = doc(db, 'user_projects', user.uid);
-                const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.independentProjectTitle !== undefined) setIndependentProjectTitle(data.independentProjectTitle);
-                        if (data.is1ProjectTitle !== undefined) setIs1ProjectTitle(data.is1ProjectTitle);
-                        if (data.is2ProjectTitle !== undefined) setIs2ProjectTitle(data.is2ProjectTitle);
-                        if (data.is3ProjectTitle !== undefined) setIs3ProjectTitle(data.is3ProjectTitle);
-                        if (data.selectedIS !== undefined) setSelectedIS(data.selectedIS);
-                        
-                        // FALLBACK: If no specific section detail is requested or found, load from main doc
-                        // This ensures reverse compatibility with existing data
-                        if (!currentIsType) {
-                            if (data.coreConcept !== undefined) setCoreConcept(data.coreConcept);
-                            if (data.researchData !== undefined) setResearchData(data.researchData);
-                        }
-                    }
-                    setIsLoaded(true);
-                }, (error) => {
-                    console.error("Error fetching main project data:", error);
-                    setIsLoaded(true);
-                });
-                return () => unsubscribeSnapshot();
+        if (!user) {
+            setIsLoaded(true);
+            return;
+        }
+
+        const compositeId = `${user.uid}_${contextId}`;
+        const docRef = doc(db, 'user_projects', compositeId);
+        
+        const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setIndependentProjectTitle(data.independentProjectTitle || '');
+                setIs1ProjectTitle(data.is1ProjectTitle || '');
+                setIs2ProjectTitle(data.is2ProjectTitle || '');
+                setIs3ProjectTitle(data.is3ProjectTitle || '');
+                setSelectedIS(data.selectedIS || 'INDEPENDENT');
+                
+                if (!currentIsType) {
+                    setCoreConcept(data.coreConcept || '');
+                    setResearchData(data.researchData || '');
+                }
             } else {
-                setIsLoaded(true);
+                // Clear state if document doesn't exist for this context
+                setIndependentProjectTitle('');
+                setIs1ProjectTitle('');
+                setIs2ProjectTitle('');
+                setIs3ProjectTitle('');
+                setSelectedIS('INDEPENDENT');
+                setCoreConcept('');
+                setResearchData('');
             }
+            setIsLoaded(true);
+        }, (error) => {
+            console.error("Error fetching main project data:", error);
+            setIsLoaded(true);
         });
-        return () => unsubscribeAuth();
-    }, [currentIsType]);
+        
+        return () => unsubscribeSnapshot();
+    }, [user, contextId, currentIsType]);
 
     // 3. Fetch SECTION-SPECIFIC Detailed Data (Selective Loading)
     useEffect(() => {
-        if (!currentIsType || !['is1', 'is2', 'is3'].includes(currentIsType)) {
+        if (!user || !currentIsType || !['is1', 'is2', 'is3'].includes(currentIsType)) {
             setIsDetailsLoaded(true);
             return;
         }
 
-        const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-            if (user) {
-                const detailsRef = doc(db, 'user_projects', user.uid, 'details', currentIsType);
-                const unsubscribeSnapshot = onSnapshot(detailsRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.coreConcept !== undefined) setCoreConcept(data.coreConcept);
-                        if (data.researchData !== undefined) setResearchData(data.researchData);
-                    } else {
-                        // If detail doc doesn't exist yet, we don't clear (might be using main doc data)
-                    }
-                    setIsDetailsLoaded(true);
-                }, (error) => {
-                    console.error(`Error fetching ${currentIsType} details:`, error);
-                    setIsDetailsLoaded(true);
-                });
-                return () => unsubscribeSnapshot();
+        const compositeId = `${user.uid}_${contextId}`;
+        const detailsRef = doc(db, 'user_projects', compositeId, 'details', currentIsType);
+        
+        const unsubscribeSnapshot = onSnapshot(detailsRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setCoreConcept(data.coreConcept || '');
+                setResearchData(data.researchData || '');
+            } else {
+                // Not clearing if using main doc data (reverse compat handled in fetch 2)
             }
+            setIsDetailsLoaded(true);
+        }, (error) => {
+            console.error(`Error fetching ${currentIsType} details:`, error);
+            setIsDetailsLoaded(true);
         });
-        return () => unsubscribeAuth();
-    }, [currentIsType]);
+        
+        return () => unsubscribeSnapshot();
+    }, [user, contextId, currentIsType]);
 
     const saveToFirestore = async (dataToUpdate: any) => {
-        const user = auth.currentUser;
         if (!user) return;
+        const compositeId = `${user.uid}_${contextId}`;
 
         // Split data between MAIN doc and SECTION doc
         const mainDocFields = ['independentProjectTitle', 'is1ProjectTitle', 'is2ProjectTitle', 'is3ProjectTitle', 'selectedIS'];
         const detailFields = ['coreConcept', 'researchData'];
 
-        const mainUpdate: any = { uid: user.uid };
-        const detailUpdate: any = { uid: user.uid };
+        const mainUpdate: any = { uid: user.uid, lastUpdated: new Date() };
+        const detailUpdate: any = { uid: user.uid, lastUpdated: new Date() };
         
         let hasMainUpdate = false;
         let hasDetailUpdate = false;
@@ -122,15 +133,15 @@ export const useProjectData = (sectionOverride?: string) => {
 
         const promises = [];
         if (hasMainUpdate) {
-            promises.push(setDoc(doc(db, 'user_projects', user.uid), mainUpdate, { merge: true }));
+            promises.push(setDoc(doc(db, 'user_projects', compositeId), mainUpdate, { merge: true }));
         }
         
         if (hasDetailUpdate && currentIsType && ['is1', 'is2', 'is3'].includes(currentIsType)) {
-            const detailsRef = doc(db, 'user_projects', user.uid, 'details', currentIsType);
+            const detailsRef = doc(db, 'user_projects', compositeId, 'details', currentIsType);
             promises.push(setDoc(detailsRef, detailUpdate, { merge: true }));
         } else if (hasDetailUpdate) {
             // Save to main doc if no specific section is active
-            promises.push(setDoc(doc(db, 'user_projects', user.uid), detailUpdate, { merge: true }));
+            promises.push(setDoc(doc(db, 'user_projects', compositeId), detailUpdate, { merge: true }));
         }
 
         try {

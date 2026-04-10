@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { useProjectData } from '../hooks/useProjectData';
+import { useAuth } from '../contexts/AuthContext';
 import { db, auth } from '../firebase';
 import { doc, getDoc, collection, getDocs, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { Loader2, FileText, Download, AlertCircle, RefreshCcw } from 'lucide-react';
@@ -9,12 +10,16 @@ import PrintableReport from './PrintableReport';
 import ReportMetadataForm from './ReportMetadataForm';
 
 const FinalReportCompiler = () => {
+    const { user, userData } = useAuth();
     const { projectTitle, isLoaded: isProjectLoaded } = useProjectData();
     const [isLoading, setIsLoading] = useState(true);
     const [reportData, setReportData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
+
+    // Context Info
+    const contextId = userData?.classId || 'personal';
 
     // Form states for Step 3 Compile (additional info)
     const [authorName, setAuthorName] = useState('');
@@ -29,49 +34,59 @@ const FinalReportCompiler = () => {
 
     // 3. Fetch REPORT METADATA (Author, School, etc.)
     useEffect(() => {
-        const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-            if (user) {
-                const reportRef = doc(db, 'user_reports', user.uid);
-                const unsubscribeSnapshot = onSnapshot(reportRef, (reportSnap) => {
-                    if (reportSnap.exists()) {
-                        const rData = reportSnap.data();
-                        if (rData.authorName) setAuthorName(rData.authorName);
-                        if (rData.acknowledgements) setAcknowledgements(rData.acknowledgements);
-                        if (rData.references) setReferences(rData.references);
-                        if (rData.projectAbstract) setProjectAbstract(rData.projectAbstract);
-                        if (rData.schoolName) setSchoolName(rData.schoolName);
-                        if (rData.semester) setSemester(rData.semester);
-                        if (rData.subjectName) setSubjectName(rData.subjectName);
-                        if (rData.subjectCode) setSubjectCode(rData.subjectCode);
-                        if (rData.customCoverText) setCustomCoverText(rData.customCoverText);
-                    }
-                });
-                return () => unsubscribeSnapshot();
+        if (!user) return;
+
+        const compositeId = `${user.uid}_${contextId}`;
+        const reportRef = doc(db, 'user_reports', compositeId);
+        
+        const unsubscribeSnapshot = onSnapshot(reportRef, (reportSnap) => {
+            if (reportSnap.exists()) {
+                const rData = reportSnap.data();
+                if (rData.authorName) setAuthorName(rData.authorName);
+                if (rData.acknowledgements) setAcknowledgements(rData.acknowledgements);
+                if (rData.references) setReferences(rData.references);
+                if (rData.projectAbstract) setProjectAbstract(rData.projectAbstract);
+                if (rData.schoolName) setSchoolName(rData.schoolName);
+                if (rData.semester) setSemester(rData.semester);
+                if (rData.subjectName) setSubjectName(rData.subjectName);
+                if (rData.subjectCode) setSubjectCode(rData.subjectCode);
+                if (rData.customCoverText) setCustomCoverText(rData.customCoverText);
+            } else {
+                // Clear form if no report context found
+                setAuthorName('');
+                setAcknowledgements('');
+                setReferences('');
+                setProjectAbstract('');
+                setSchoolName('');
+                setSemester(`ภาคเรียนที่ 1 ปีการศึกษา ${new Date().getFullYear() + 543}`);
+                setSubjectName('');
+                setSubjectCode('');
+                setCustomCoverText('');
             }
         });
-        return () => unsubscribeAuth();
-    }, []);
+        
+        return () => unsubscribeSnapshot();
+    }, [user, contextId]);
 
     const fetchData = async () => {
         setIsLoading(true);
         setError(null);
-        const user = auth.currentUser;
         if (!user) {
             setError("กรุณาเข้าสู่ระบบก่อนครับ");
             setIsLoading(false);
             return;
         }
 
+        const compositeId = `${user.uid}_${contextId}`;
+
         try {
             // 1. Fetch data from user_chapters for all steps (2-8)
-            // New Step mapping for 16-step flow: 
-            // 5: Ch1, 8: Ch2, 11: Ch3, 13: Ch4, 15: Ch5
             const steps = [5, 8, 11, 13, 15];
             const allInputs: any = {};
             const chapters: any[] = [];
 
             for (const stepNum of steps) {
-                const docRef = doc(db, 'user_chapters', user.uid, 'chapters', String(stepNum));
+                const docRef = doc(db, 'user_chapters', compositeId, 'chapters', String(stepNum));
                 const docSnap = await getDoc(docRef);
                 
                 if (docSnap.exists()) {
@@ -125,14 +140,14 @@ const FinalReportCompiler = () => {
         if (isProjectLoaded) {
             fetchData();
         }
-    }, [isProjectLoaded]);
+    }, [isProjectLoaded, contextId]);
 
     const handleSaveMetadata = async (field: string, value: string) => {
-        const user = auth.currentUser;
         if (!user) return;
+        const compositeId = `${user.uid}_${contextId}`;
         try {
-            const reportRef = doc(db, 'user_reports', user.uid);
-            await setDoc(reportRef, { [field]: value, uid: user.uid }, { merge: true });
+            const reportRef = doc(db, 'user_reports', compositeId);
+            await setDoc(reportRef, { [field]: value, uid: user.uid, lastUpdated: new Date() }, { merge: true });
         } catch (err) {
             console.error("Error saving metadata:", err);
         }

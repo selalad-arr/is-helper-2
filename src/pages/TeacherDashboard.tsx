@@ -78,12 +78,17 @@ const StudentDetailFlyout = () => {
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!studentId) return;
+        if (!studentId || !classId) return;
         setLoading(true);
         
         // Fetch student basic info
         const studentRef = doc(db, 'users', studentId);
-        const projectRef = doc(db, 'user_projects', studentId);
+        
+        // Context-aware composite IDs for project data
+        const compositeId = `${studentId}_${classId}`;
+        const projectRef = doc(db, 'user_projects', compositeId);
+        const progressRef = doc(db, 'user_progress', compositeId);
+        const reportRef = doc(db, 'user_reports', compositeId);
         
         const unsubStudent = onSnapshot(studentRef, (snap) => {
             if (snap.exists()) setStudent({ id: snap.id, ...snap.data() });
@@ -97,15 +102,20 @@ const StudentDetailFlyout = () => {
                 const data = snap.data();
                 setProject(data);
                 if (data.grade !== undefined) setGrade(data.grade);
+            } else {
+                setProject(null);
+                setGrade('');
             }
         }, (err) => console.error("Project detail fetch error:", err));
 
-        const unsubProgress = onSnapshot(doc(db, 'user_progress', studentId), (snap) => {
+        const unsubProgress = onSnapshot(progressRef, (snap) => {
             if (snap.exists()) setProgress(snap.data());
+            else setProgress(null);
         }, (err) => console.error("Progress detail fetch error:", err));
 
-        const unsubReport = onSnapshot(doc(db, 'user_reports', studentId), (snap) => {
+        const unsubReport = onSnapshot(reportRef, (snap) => {
             if (snap.exists()) setReport(snap.data());
+            else setReport(null);
         }, (err) => console.error("Report detail fetch error:", err));
 
         // Fetch consultations
@@ -557,10 +567,10 @@ export const TeacherDashboard: React.FC = () => {
     setError(null);
     const q = query(
       collection(db, 'users'),
-      where('classId', '==', selectedClassroom.id)
+      where('classroomIds', 'array-contains', selectedClassroom.id)
     );
 
-    console.log("TeacherDashboard: Fetching students for classId:", selectedClassroom.id);
+    console.log("TeacherDashboard: Fetching students who have joined classId:", selectedClassroom.id);
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const studentList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -601,34 +611,40 @@ export const TeacherDashboard: React.FC = () => {
         const { getDocs, query, collection, where } = await import('firebase/firestore');
         
         await Promise.all(batches.map(async (batchIds) => {
-          // Projects
+          // Prepare composite IDs for batch query
+          const compositeIds = batchIds.map(id => `${id}_${selectedClassroom.id}`);
+
+          // Projects (Metadata only - using compositeId since that's where classroom data is stored)
           const qProj = query(
             collection(db, 'user_projects'),
-            where('uid', 'in', batchIds)
+            where('__name__', 'in', compositeIds)
           );
           const snapProj = await getDocs(qProj);
           snapProj.forEach(doc => {
-            allProjects[doc.id] = doc.data();
+            const studentId = doc.id.split('_')[0];
+            allProjects[studentId] = doc.data();
           });
 
           // Progress
           const qProg = query(
             collection(db, 'user_progress'),
-            where('uid', 'in', batchIds)
+            where('__name__', 'in', compositeIds)
           );
           const snapProg = await getDocs(qProg);
           snapProg.forEach(doc => {
-            allProgress[doc.id] = doc.data();
+            const studentId = doc.id.split('_')[0];
+            allProgress[studentId] = doc.data();
           });
 
           // Reports (for the link)
           const qReport = query(
              collection(db, 'user_reports'),
-             where('uid', 'in', batchIds)
+             where('__name__', 'in', compositeIds)
           );
           const snapReport = await getDocs(qReport);
           snapReport.forEach(doc => {
-            allReports[doc.id] = doc.data();
+            const studentId = doc.id.split('_')[0];
+            allReports[studentId] = doc.data();
           });
         }));
         

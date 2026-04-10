@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ReportMetadata {
     authorName: string;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
+    const { user, userData } = useAuth();
     const [metadata, setMetadata] = useState<ReportMetadata>({
         authorName: '',
         schoolName: '',
@@ -32,41 +34,57 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
     });
     const [isLoading, setIsLoading] = useState(true);
 
+    const contextId = userData?.classId || 'personal';
+
     useEffect(() => {
-        const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-            if (user) {
-                const reportRef = doc(db, 'user_reports', user.uid);
-                const unsubscribeSnapshot = onSnapshot(reportRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data() as Partial<ReportMetadata>;
-                        setMetadata(prev => ({
-                            ...prev,
-                            ...data
-                        }));
-                    }
-                    setIsLoading(false);
-                }, (error) => {
-                    console.error("Error fetching report metadata:", error);
-                    setIsLoading(false);
-                });
-                return () => unsubscribeSnapshot();
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
+
+        const compositeId = `${user.uid}_${contextId}`;
+        const reportRef = doc(db, 'user_reports', compositeId);
+        
+        const unsubscribeSnapshot = onSnapshot(reportRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data() as Partial<ReportMetadata>;
+                setMetadata(prev => ({
+                    ...prev,
+                    ...data
+                }));
             } else {
-                setIsLoading(false);
+                // Return to defaults if no report exists for this context
+                setMetadata({
+                    authorName: '',
+                    schoolName: '',
+                    semester: `ภาคเรียนที่ 1 ปีการศึกษา ${new Date().getFullYear() + 543}`,
+                    subjectName: '',
+                    subjectCode: '',
+                    acknowledgements: '',
+                    projectAbstract: '',
+                    references: ''
+                });
             }
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching report metadata:", error);
+            setIsLoading(false);
         });
-        return () => unsubscribeAuth();
-    }, []);
+        
+        return () => unsubscribeSnapshot();
+    }, [user, contextId]);
 
     const handleSave = async (field: keyof ReportMetadata, value: string) => {
-        const user = auth.currentUser;
         if (!user) return;
         
+        const compositeId = `${user.uid}_${contextId}`;
+
         // Update local state immediately for responsiveness
         setMetadata(prev => ({ ...prev, [field]: value }));
 
         try {
-            const reportRef = doc(db, 'user_reports', user.uid);
-            await setDoc(reportRef, { [field]: value, uid: user.uid }, { merge: true });
+            const reportRef = doc(db, 'user_reports', compositeId);
+            await setDoc(reportRef, { [field]: value, uid: user.uid, lastUpdated: new Date() }, { merge: true });
         } catch (err) {
             console.error(`Error saving ${field}:`, err);
         }

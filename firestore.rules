@@ -78,12 +78,32 @@ service cloud.firestore {
     }
     function isTeacherOfStudent(studentId) {
       let student = getUserData(studentId);
-      return isTeacher() && student.classId != null && 
-             get(/databases/$(database)/documents/classrooms/$(student.classId)).data.teacherId == request.auth.uid;
+      return isTeacher() && student.classroomIds != null && 
+             student.classroomIds.size() > 0;
     }
+
     function isTeacherOfProject(projectData) {
       return isTeacher() && projectData.classId != null && 
              get(/databases/$(database)/documents/classrooms/$(projectData.classId)).data.teacherId == request.auth.uid;
+    }
+
+    function getStudentId(compositeId) {
+      return compositeId.split('_')[0];
+    }
+    function getClassId(compositeId) {
+      let parts = compositeId.split('_');
+      return parts.size() > 1 ? parts[1] : 'personal';
+    }
+
+    function isContextOwner(compositeId) {
+      return isAuthenticated() && getStudentId(compositeId) == request.auth.uid;
+    }
+
+    function isTeacherOfContext(compositeId) {
+      let classId = getClassId(compositeId);
+      return isTeacher() && classId != 'personal' && 
+             exists(/databases/$(database)/documents/classrooms/$(classId)) &&
+             get(/databases/$(database)/documents/classrooms/$(classId)).data.teacherId == request.auth.uid;
     }
 
     function uidUnchanged() {
@@ -92,6 +112,14 @@ service cloud.firestore {
     function uidNotModified() {
       return !('uid' in request.resource.data) || 
              (!('uid' in resource.data) && request.resource.data.uid == request.auth.uid) ||
+             (request.resource.data.uid == resource.data.uid);
+    }
+    function contextUidUnchanged(compositeId) {
+      return !('uid' in request.resource.data) || request.resource.data.uid == getStudentId(compositeId);
+    }
+    function contextUidNotModified(compositeId) {
+      return !('uid' in request.resource.data) || 
+             (!('uid' in resource.data) && request.resource.data.uid == getStudentId(compositeId)) ||
              (request.resource.data.uid == resource.data.uid);
     }
     function hasRequiredFields(fields) {
@@ -334,39 +362,39 @@ service cloud.firestore {
                (!('userAgent' in data) || data.userAgent is string);
       }
 
-    match /user_progress/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || isTeacherOfStudent(userId);
-      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfStudent(userId)); 
-      allow create: if isOwner(userId) && isValidUserProgress() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserProgress() && uidNotModified();
+    match /user_progress/{compositeId} {
+      allow read: if isContextOwner(compositeId) || isAdmin() || isTeacherOfContext(compositeId);
+      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfContext(compositeId)); 
+      allow create: if isContextOwner(compositeId) && isValidUserProgress() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserProgress() && contextUidNotModified(compositeId);
       allow delete: if false;
     }
 
-    match /user_projects/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || isTeacherOfStudent(userId);
-      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfStudent(userId));
-      allow create: if isOwner(userId) && isValidUserProject() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserProject() && uidNotModified();
+    match /user_projects/{compositeId} {
+      allow read: if isContextOwner(compositeId) || isAdmin() || isTeacherOfContext(compositeId);
+      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfContext(compositeId));
+      allow create: if isContextOwner(compositeId) && isValidUserProject() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserProject() && contextUidNotModified(compositeId);
       allow delete: if false;
 
       match /details/{isType} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId);
+        allow read: if isContextOwner(compositeId);
+        allow write: if isContextOwner(compositeId);
       }
     }
 
-    match /user_chapters/{userId}/chapters/{chapterId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUserChapter() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserChapter() && uidNotModified();
+    match /user_chapters/{compositeId}/chapters/{chapterId} {
+      allow read: if isContextOwner(compositeId) || isTeacherOfContext(compositeId);
+      allow create: if isContextOwner(compositeId) && isValidUserChapter() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserChapter() && contextUidNotModified(compositeId);
       allow delete: if false;
     }
 
-    match /user_reports/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || isTeacherOfStudent(userId);
-      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfStudent(userId));
-      allow create: if isOwner(userId) && isValidUserReport() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserReport() && uidNotModified();
+    match /user_reports/{compositeId} {
+      allow read: if isContextOwner(compositeId) || isAdmin() || isTeacherOfContext(compositeId);
+      allow list: if isAuthenticated() && (isAdmin() || isTeacherOfContext(compositeId));
+      allow create: if isContextOwner(compositeId) && isValidUserReport() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserReport() && contextUidNotModified(compositeId);
       allow delete: if false;
     }
 
@@ -398,17 +426,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /user_chats/{userId}/chats/{chatContext} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUserChat() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserChat() && uidNotModified();
+    match /user_chats/{compositeId}/chats/{chatContext} {
+      allow read: if isContextOwner(compositeId);
+      allow create: if isContextOwner(compositeId) && isValidUserChat() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserChat() && contextUidNotModified(compositeId);
       allow delete: if false;
     }
 
-    match /user_exercises/{userId}/exercises/{contextId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUserExercise() && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUserExercise() && uidNotModified();
+    match /user_exercises/{compositeId}/exercises/{contextId} {
+      allow read: if isContextOwner(compositeId);
+      allow create: if isContextOwner(compositeId) && isValidUserExercise() && contextUidUnchanged(compositeId);
+      allow update: if isContextOwner(compositeId) && isValidUserExercise() && contextUidNotModified(compositeId);
       allow delete: if false;
     }
 
