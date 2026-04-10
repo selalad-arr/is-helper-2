@@ -3,10 +3,7 @@ import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/aut
 import { auth, googleProvider, facebookProvider, lineProvider, db } from '../firebase';
 import { doc, setDoc, getDoc, collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { 
-  AuthProvider as FirebaseAuthProvider, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail
+  AuthProvider as FirebaseAuthProvider 
 } from 'firebase/auth';
 
 interface AuthContextType {
@@ -15,7 +12,6 @@ interface AuthContextType {
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
   login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
-  loginWithEmail: (email: string, pass: string, isSignUp: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   joinClassroom: (classCode: string) => Promise<void>;
@@ -31,7 +27,6 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   loading: true,
   login: async () => {},
-  loginWithEmail: async () => {},
   logout: async () => {},
   updateProfile: async () => {},
   joinClassroom: async () => {},
@@ -224,66 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithEmail = async (email: string, pass: string, isSignUp: boolean) => {
-    setLoading(true);
-    setAuthError(null);
-    try {
-      // Hardcoded Admin Credentials
-      if ((email === 'admin' && pass === 'admin')) {
-        if (isSignUp) {
-          throw new Error('การสมัครสมาชิกสำหรับผู้ดูแลระบบถูกปิดใช้งาน');
-        }
-        
-        const mockUser = {
-          uid: 'admin-mock-id',
-          email: email,
-          displayName: 'Administrator',
-          photoURL: '',
-        };
-        
-        isMockAdminRef.current = true;
-        userRef.current = mockUser;
-        setUser(mockUser);
-        setUserData({ role: 'admin', name: 'Administrator', onboardingComplete: true });
-        setUserRole('admin');
-        setLoading(false);
-        return;
-      }
 
-      isMockAdminRef.current = false;
-
-      if (isSignUp) {
-        const result = await createUserWithEmailAndPassword(auth, email, pass);
-        if (result.user) {
-          const userDocRef = doc(db, 'users', result.user.uid);
-          await setDoc(userDocRef, {
-            uid: result.user.uid,
-            email: result.user.email || '',
-            displayName: result.user.displayName || '',
-            photoURL: result.user.photoURL || '',
-            role: null,
-            createdAt: serverTimestamp(),
-            onboardingComplete: false
-          });
-        }
-      } else {
-        const result = await signInWithEmailAndPassword(auth, email, pass);
-        // Role will be fetched from Firestore in onAuthStateChanged/onSnapshot
-      }
-    } catch (error: any) {
-      console.error("Email auth error:", error);
-      let message = 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์';
-      if (error.code === 'auth/user-not-found') message = 'ไม่พบผู้ใช้นี้ในระบบ';
-      else if (error.code === 'auth/wrong-password') message = 'รหัสผ่านไม่ถูกต้อง';
-      else if (error.code === 'auth/email-already-in-use') message = 'อีเมลนี้ถูกใช้งานแล้ว';
-      else if (error.code === 'auth/invalid-email') message = 'รูปแบบอีเมลไม่ถูกต้อง';
-      
-      setAuthError(message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const selectRole = async (role: 'student' | 'teacher' | 'admin') => {
     if (!user) return;
@@ -343,7 +279,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userRole, 
       loading, 
       login, 
-      loginWithEmail, 
       logout,
       updateProfile,
       joinClassroom,

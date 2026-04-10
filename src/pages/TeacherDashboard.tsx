@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { 
-    collection, query, where, onSnapshot, addDoc, 
+    collection, query, where, onSnapshot, addDoc, setDoc,
     serverTimestamp, deleteDoc, doc, limit, orderBy, getDoc
 } from 'firebase/firestore';
 import { Link, Routes, Route, useNavigate, useLocation, useParams, Navigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import {
 } from '../ui/icons';
 import { IS_CONFIG } from '../content';
 import PrintableReport from '../components/PrintableReport';
+import { Task, TaskResponse } from '../types';
 
 // --- Sub-components ---
 
@@ -69,6 +70,8 @@ const StudentDetailFlyout = () => {
     const [consultations, setConsultations] = useState<any[]>([]);
     const [feedbackText, setFeedbackText] = useState('');
     const [savingFeedback, setSavingFeedback] = useState(false);
+    const [grade, setGrade] = useState<number | string>('');
+    const [savingGrade, setSavingGrade] = useState(false);
     const [loading, setLoading] = useState(true);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -90,7 +93,11 @@ const StudentDetailFlyout = () => {
         });
 
         const unsubProject = onSnapshot(projectRef, (snap) => {
-            if (snap.exists()) setProject(snap.data());
+            if (snap.exists()) {
+                const data = snap.data();
+                setProject(data);
+                if (data.grade !== undefined) setGrade(data.grade);
+            }
         }, (err) => console.error("Project detail fetch error:", err));
 
         const unsubProgress = onSnapshot(doc(db, 'user_progress', studentId), (snap) => {
@@ -208,6 +215,21 @@ const StudentDetailFlyout = () => {
             alert("ไม่สามารถบันทึกคำแนะนำได้");
         } finally {
             setSavingFeedback(false);
+        }
+    };
+
+    const handleSaveGrade = async () => {
+        if (!student || !user) return;
+        setSavingGrade(true);
+        try {
+            const projectRef = doc(db, 'user_projects', student.id);
+            await setDoc(projectRef, { grade: Number(grade) }, { merge: true });
+            alert("บันทึกคะแนนเรียบร้อยแล้ว");
+        } catch (err) {
+            console.error("Error saving grade:", err);
+            alert("ไม่สามารถบันทึกคะแนนได้");
+        } finally {
+            setSavingGrade(false);
         }
     };
 
@@ -372,6 +394,29 @@ const StudentDetailFlyout = () => {
                                     ))}
                                 </div>
                             )}
+
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-8 rounded-[2.5rem] border-2 border-emerald-100 dark:border-emerald-800/30 mt-6">
+                                <h5 className="font-black text-emerald-700 dark:text-emerald-300 mb-4 flex items-center gap-2">
+                                    <AcademicCapIcon className="w-5 h-5" />
+                                    การประเมินและให้คะแนน
+                                </h5>
+                                <div className="flex gap-4">
+                                    <input 
+                                        type="number"
+                                        value={grade}
+                                        onChange={(e) => setGrade(e.target.value)}
+                                        placeholder="คะแนน (0-100)" 
+                                        className="flex-grow p-4 bg-white dark:bg-slate-900 border-2 border-emerald-100 dark:border-emerald-800 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-center font-black text-xl transition-all"
+                                    />
+                                    <button 
+                                        onClick={handleSaveGrade}
+                                        disabled={savingGrade || grade === ''}
+                                        className="px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/20 transition-all disabled:opacity-50"
+                                    >
+                                        {savingGrade ? '...' : 'บันทึก'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </motion.div>
@@ -453,6 +498,11 @@ export const TeacherDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [showTaskCreateModal, setShowTaskCreateModal] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDesc, setNewTaskDesc] = useState('');
+  const [targetClassId, setTargetClassId] = useState('all');
 
   // 1. Fetch Classrooms for this teacher
   useEffect(() => {
@@ -463,6 +513,16 @@ export const TeacherDashboard: React.FC = () => {
     }, (err) => {
       console.error("Error fetching classrooms:", err);
       // We don't set alert here to avoid annoyance, but logging is crucial
+    });
+    return unsubscribe;
+  }, [user]);
+
+  // 1.1 Fetch Tasks for this teacher
+  useEffect(() => {
+    if (!user || user.uid === 'admin-mock-id') return;
+    const q = query(collection(db, 'tasks'), where('teacherId', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setTasks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task)));
     });
     return unsubscribe;
   }, [user]);
@@ -564,21 +624,95 @@ export const TeacherDashboard: React.FC = () => {
         studentCount: 0
       };
 
-      addDoc(collection(db, 'classrooms'), classroomData).catch(err => {
-        console.error("Background classroom creation error:", err);
-        alert("เกิดข้อผิดพลาดในการบันทึกห้องเรียน โปรดรีเฟรชหน้าจอ");
-      });
+      await addDoc(collection(db, 'classrooms'), classroomData);
       
       setLoading(false);
       setShowCreateModal(false);
       setNewClassName('');
       navigate('/teacher/classrooms');
-      
     } catch (err) {
       console.error("Error setting up class creation:", err);
       alert("ไม่สามารถสร้างห้องเรียนได้ในขณะนี้");
       setLoading(false);
     }
+  };
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim() || !user) return;
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'tasks'), {
+        title: newTaskTitle,
+        description: newTaskDesc,
+        teacherId: user.uid,
+        classId: targetClassId,
+        assignedTo: targetClassId === 'all' ? ['all'] : [targetClassId],
+        status: 'active',
+        createdAt: serverTimestamp()
+      });
+      setNewTaskTitle('');
+      setNewTaskDesc('');
+      setShowTaskCreateModal(false);
+    } catch (err) {
+      console.error("Error creating task:", err);
+      alert("ไม่สามารถบันทึกงานได้");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const TasksView = () => {
+    return (
+      <div className="space-y-10">
+        <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">มอบหมายงาน</h2>
+            <button 
+              onClick={() => setShowTaskCreateModal(true)}
+              className="flex items-center gap-3 px-8 py-4 bg-linear-to-br from-purple-500 to-indigo-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-purple-500/20 hover:shadow-2xl hover:scale-105 transition-all text-xs"
+            >
+                <PlusIcon className="w-5 h-5" />
+                สร้างงานใหม่
+            </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tasks.length === 0 ? (
+                <div className="col-span-full py-20 text-center text-slate-400 font-bold italic bg-white/40 dark:bg-slate-800/40 rounded-[3rem] border-2 border-dashed border-slate-200/50">
+                    ยังไม่มีการมอบหมายงาน
+                </div>
+            ) : (
+                tasks.map(task => (
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} key={task.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 dark:border-slate-700/50 shadow-xl">
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{task.title}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2">{task.description}</p>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                {task.classId === 'all' ? 'ทุกห้องเรียน' : (classrooms.find(c => c.id === task.classId)?.className || 'ไม่ทราบห้อง')}
+                            </span>
+                            <button 
+                                className="p-2 text-slate-300 hover:text-red-500 transition-colors" 
+                                onClick={async () => {
+                                    if (window.confirm('ต้องการลบงานนี้หรือไม่?')) {
+                                        try {
+                                            await deleteDoc(doc(db, 'tasks', task.id));
+                                            alert('ลบงานเรียบร้อยแล้ว');
+                                        } catch (err) {
+                                            console.error("Error deleting task:", err);
+                                            alert('ไม่สามารถลบงานได้');
+                                        }
+                                    }
+                                }}
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                ))
+            )}
+        </div>
+      </div>
+    );
   };
 
   const calculateProgress = (project: any) => {
@@ -596,9 +730,11 @@ export const TeacherDashboard: React.FC = () => {
               {[
                   { id: 'home', label: 'หน้าหลัก', icon: HomeIcon, path: '/teacher/home' },
                   { id: 'classrooms', label: 'ห้องเรียนของฉัน', icon: AcademicCapIcon, path: '/teacher/classrooms' },
+                  { id: 'tasks', label: 'มอบหมายงาน', icon: DocumentTextIcon, path: '/teacher/tasks' },
                   { id: 'analytics', label: 'การวิเคราะห์', icon: ChartBarIcon, path: '/teacher/analytics' }
               ].map((item) => {
                   const activeView = location.pathname.includes('/classrooms') ? 'classrooms' : 
+                                   location.pathname.includes('/tasks') ? 'tasks' :
                                    location.pathname.includes('/analytics') ? 'analytics' : 'home';
                   return (
                   <Link 
@@ -909,11 +1045,13 @@ export const TeacherDashboard: React.FC = () => {
   };
 
   const handleDeleteClass = async (id: string) => {
-    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้?')) {
+    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้? ข้อมูลนักเรียนในห้องนี้จะไม่ถูกลบ แต่จะไม่อยู่ในห้องเรียนนี้อีกต่อไป')) {
       try {
         await deleteDoc(doc(db, 'classrooms', id));
+        alert('ลบห้องเรียนเรียบร้อยแล้ว');
       } catch (err) {
         console.error("Error deleting class:", err);
+        alert('เกิดข้อผิดพลาดในการลบห้องเรียน');
       }
     }
   };
@@ -934,8 +1072,9 @@ export const TeacherDashboard: React.FC = () => {
                     <StudentDetailFlyout />
                 </>
             } />
+            <Route path="/tasks" element={<TasksView />} />
             <Route path="/analytics" element={
-              <div className="flex items-center justify-center h-full text-slate-400 italic font-bold">
+              <div className="flex items-center justify-center p-20 bg-white/40 dark:bg-slate-800/40 rounded-[3rem] border-2 border-dashed border-slate-200/50 text-slate-400 italic font-bold">
                   เร็ว ๆ นี้ : ระบบวิเคราะห์ความก้าวหน้าเชิงลึก 📊
               </div>
             } />
@@ -985,6 +1124,78 @@ export const TeacherDashboard: React.FC = () => {
                     className="flex-1 py-4 bg-sky-500 hover:bg-sky-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-200 dark:shadow-none transition-all disabled:opacity-50 transform active:scale-95"
                   >
                     {loading ? '...' : 'สร้างทันที'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Task Modal */}
+      <AnimatePresence mode="wait">
+        {showTaskCreateModal && (
+          <div key="create-task-overlay" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+            <motion.div
+              key="create-task-modal-card"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border-4 border-slate-50 dark:border-slate-800"
+            >
+              <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">มอบหมายงานใหม่</h3>
+                  <button onClick={() => setShowTaskCreateModal(false)}><XMarkIcon className="w-6 h-6 text-slate-300" /></button>
+              </div>
+              
+              <form onSubmit={handleCreateTask} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">หัวข้องาน</label>
+                  <input
+                    type="text"
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-lg font-bold"
+                    placeholder="เช่น ส่งหัวข้อโครงงาน"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">คำอธิบาย</label>
+                  <textarea
+                    value={newTaskDesc}
+                    onChange={(e) => setNewTaskDesc(e.target.value)}
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-sm font-medium h-32 resize-none"
+                    placeholder="รายละเอียดงาน..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">มอบหมายให้</label>
+                  <select 
+                    value={targetClassId}
+                    onChange={(e) => setTargetClassId(e.target.value)}
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 focus:border-purple-500 outline-none transition-all text-sm font-bold"
+                  >
+                    <option value="all">ทุกห้องเรียน</option>
+                    {classrooms.map(c => (
+                      <option key={c.id} value={c.id}>{c.className}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowTaskCreateModal(false)}
+                    className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-slate-200"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || !newTaskTitle.trim()}
+                    className="flex-1 py-4 bg-purple-500 hover:bg-purple-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-purple-200 dark:shadow-none transition-all disabled:opacity-50 transform active:scale-95"
+                  >
+                    {loading ? '...' : 'สร้างงาน'}
                   </button>
                 </div>
               </form>

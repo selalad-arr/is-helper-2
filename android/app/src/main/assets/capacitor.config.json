@@ -1,0 +1,6 @@
+{
+	"appId": "com.yourname.ishelper",
+	"appName": "IS Helper",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

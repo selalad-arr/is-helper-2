@@ -7,8 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { trackEvent } from '../services/analyticsService';
 import { StudentOnboarding } from '../components/StudentOnboarding';
 import { db } from '../firebase';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, where, doc } from 'firebase/firestore';
 import { useEffect } from 'react';
+import { Task } from '../types';
 
 export const HomePage = () => {
     const { user, userData, userRole, joinClassroom } = useAuth();
@@ -17,6 +18,8 @@ export const HomePage = () => {
     const [joinError, setJoinError] = useState('');
     const [showJoinForm, setShowJoinForm] = useState(false);
     const [consultations, setConsultations] = useState<any[]>([]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [project, setProject] = useState<any>(null);
 
     useEffect(() => {
         if (!user || userRole !== 'student') return;
@@ -33,6 +36,32 @@ export const HomePage = () => {
 
         return unsubscribe;
     }, [user, userRole]);
+
+    useEffect(() => {
+        if (!user || userRole !== 'student') return;
+        const projectRef = doc(db, 'user_projects', user.uid);
+        const unsubscribe = onSnapshot(projectRef, (snap) => {
+            if (snap.exists()) setProject(snap.data());
+        });
+        return unsubscribe;
+    }, [user, userRole]);
+
+    useEffect(() => {
+        if (!user || userRole !== 'student' || !userData?.classId) return;
+
+        const q = query(
+            collection(db, 'tasks'),
+            where('classId', 'in', [userData.classId, 'all']),
+            orderBy('createdAt', 'desc'),
+            limit(5)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setTasks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task)));
+        });
+
+        return unsubscribe;
+    }, [user, userRole, userData?.classId]);
 
     const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -199,6 +228,39 @@ export const HomePage = () => {
                                             </div>
                                         </div>
                                         <p className="text-sm font-bold text-slate-600 dark:text-slate-300 leading-relaxed italic">"{c.text}"</p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tasks Feed for Students */}
+                    {tasks.length > 0 && (
+                        <div className="space-y-6">
+                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                <span className="w-8 h-px bg-slate-200 dark:bg-slate-700" />
+                                ภารกิจที่ได้รับมอบหมาย
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {tasks.map((t, idx) => (
+                                    <motion.div 
+                                        key={t.id}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                        className="relative bg-linear-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-500/5 dark:to-indigo-500/5 p-8 rounded-[2.5rem] border border-purple-500/20 dark:border-purple-500/10 shadow-xl overflow-hidden group"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="p-3 bg-purple-500 text-white rounded-2xl shadow-lg shadow-purple-500/20">
+                                                <ICONS.DocumentTextIcon className="w-5 h-5" />
+                                            </div>
+                                            <span className="text-[10px] font-black text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-3 py-1.5 rounded-full uppercase tracking-widest border border-purple-100 dark:border-purple-800/20">
+                                                Pending
+                                            </span>
+                                        </div>
+                                        <h4 className="text-xl font-black text-slate-800 dark:text-white mb-2 uppercase tracking-tight">{t.title}</h4>
+                                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{t.description}</p>
                                     </motion.div>
                                 ))}
                             </div>
