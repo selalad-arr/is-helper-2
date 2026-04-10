@@ -164,20 +164,38 @@ const StudentDetailFlyout = () => {
                 margin: [0, 0, 0, 0],
                 fontFaces: [
                     {
-                        family: 'Sarabun',
+                        family: 'THSarabunPSK',
                         style: 'normal',
                         weight: 'normal',
                         src: [{
-                            url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Regular.ttf',
+                            url: '/fonts/THSarabun.ttf',
                             format: 'truetype'
                         }]
                     },
                     {
-                        family: 'Sarabun',
+                        family: 'THSarabunPSK',
                         style: 'normal',
                         weight: '700',
                         src: [{
-                            url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Bold.ttf',
+                            url: '/fonts/THSarabun Bold.ttf',
+                            format: 'truetype'
+                        }]
+                    },
+                    {
+                        family: 'THSarabunPSK',
+                        style: 'italic',
+                        weight: 'normal',
+                        src: [{
+                            url: '/fonts/THSarabun Italic.ttf',
+                            format: 'truetype'
+                        }]
+                    },
+                    {
+                        family: 'THSarabunPSK',
+                        style: 'italic',
+                        weight: '700',
+                        src: [{
+                            url: '/fonts/THSarabun BoldItalic.ttf',
                             format: 'truetype'
                         }]
                     }
@@ -537,8 +555,7 @@ export const TeacherDashboard: React.FC = () => {
     setError(null);
     const q = query(
       collection(db, 'users'),
-      where('classId', '==', selectedClassroom.id),
-      where('role', '==', 'student')
+      where('classId', '==', selectedClassroom.id)
     );
 
     console.log("TeacherDashboard: Fetching students for classId:", selectedClassroom.id);
@@ -927,11 +944,6 @@ export const TeacherDashboard: React.FC = () => {
                                           <div className="flex flex-col items-center gap-3">
                                               <UsersIcon className="w-12 h-12 text-slate-200" />
                                               <p className="text-slate-400 font-bold italic">ยังไม่มีนักเรียนเข้าร่วมห้องเรียนนี้ หรือกำลังโหลดข้อมูล...</p>
-                                              {selectedClassroom.studentCount > 0 && (
-                                                  <p className="text-[10px] text-slate-400 mt-2 bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
-                                                      ตรวจพบจำนวนนักเรียนในฐานข้อมูล {selectedClassroom.studentCount} คน แต่รายชื่อถูกกรองออก (ตรวจสอบว่านักเรียนเลือกบทบาท Student หรือยัง)
-                                                  </p>
-                                              )}
                                           </div>
                                       </td></tr>
                                   ) : (
@@ -956,7 +968,7 @@ export const TeacherDashboard: React.FC = () => {
                                                           </div>
                                                           <div>
                                                               <div className="font-black text-slate-900 dark:text-white uppercase leading-tight group-hover:text-sky-600 transition-colors">{s.displayName || 'ไม่มีชื่อ'}</div>
-                                                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">เลขที่ {s.classNo || '??'} • {s.email.split('@')[0]}</div>
+                                                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">เลขที่ {s.classNo || '??'} • {(s.email || '').split('@')[0] || 'Unknown'}</div>
                                                           </div>
                                                       </div>
                                                   </td>
@@ -1017,7 +1029,15 @@ export const TeacherDashboard: React.FC = () => {
                                       <div className="p-4 bg-linear-to-br from-sky-100 to-sky-50 dark:from-sky-900/30 dark:to-indigo-900/30 text-sky-500 rounded-3xl shadow-inner group-hover:rotate-6 transition-transform">
                                           <AcademicCapIcon className="w-8 h-8" />
                                       </div>
-                                      <button onClick={() => handleDeleteClass(c.id)} className="p-2.5 text-slate-300 hover:text-red-500 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-slate-100 dark:border-slate-800">
+                                      <button 
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleDeleteClass(c.id);
+                                        }} 
+                                        className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all border border-slate-100 dark:border-slate-800 shadow-sm"
+                                        title="ลบห้องเรียน"
+                                      >
                                           <TrashIcon className="w-5 h-5" />
                                       </button>
                                   </div>
@@ -1045,6 +1065,7 @@ export const TeacherDashboard: React.FC = () => {
   };
 
   const handleDeleteClass = async (id: string) => {
+<<<<<<< HEAD
     if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้? ข้อมูลนักเรียนในห้องนี้จะไม่ถูกลบ แต่จะไม่อยู่ในห้องเรียนนี้อีกต่อไป')) {
       try {
         await deleteDoc(doc(db, 'classrooms', id));
@@ -1052,6 +1073,19 @@ export const TeacherDashboard: React.FC = () => {
       } catch (err) {
         console.error("Error deleting class:", err);
         alert('เกิดข้อผิดพลาดในการลบห้องเรียน');
+=======
+    if (window.confirm('หากคุณลบห้องเรียนนี้ ข้อมูลสมาชิกนักเรียนจะถูกยกเลิกการเข้าถึงห้องเรียนนี้ทันที คุณแน่ใจหรือไม่?')) {
+      try {
+        await deleteDoc(doc(db, 'classrooms', id));
+        // Find if this was the selected classroom and clear it if so
+        if (selectedClassroom?.id === id) {
+           setSelectedClassroom(null);
+           navigate('/teacher/classrooms');
+        }
+      } catch (err: any) {
+        console.error("Error deleting class:", err);
+        alert('ไม่สามารถลบห้องเรียนได้: ' + err.message);
+>>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
       }
     }
   };

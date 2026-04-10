@@ -10,7 +10,7 @@ const pdfStyles: { [key: string]: React.CSSProperties } = {
     page: {
         backgroundColor: 'white',
         color: 'black',
-        fontFamily: 'Sarabun, sans-serif',
+        fontFamily: 'THSarabunPSK, sans-serif',
         width: '827px',
         boxSizing: 'border-box',
     },
@@ -180,20 +180,38 @@ const IS3ProjectPlanner = () => {
                     margin: [60, 72, 60, 72],
                     fontFaces: [
                         {
-                            family: 'Sarabun',
+                            family: 'THSarabunPSK',
                             style: 'normal',
                             weight: 'normal',
                             src: [{
-                                url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Regular.ttf',
+                                url: '/fonts/THSarabun.ttf',
                                 format: 'truetype'
                             }]
                         },
                         {
-                            family: 'Sarabun',
+                            family: 'THSarabunPSK',
                             style: 'normal',
-                            weight: 'bold',
+                            weight: '700',
                             src: [{
-                                url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Bold.ttf',
+                                url: '/fonts/THSarabun Bold.ttf',
+                                format: 'truetype'
+                            }]
+                        },
+                        {
+                            family: 'THSarabunPSK',
+                            style: 'italic',
+                            weight: 'normal',
+                            src: [{
+                                url: '/fonts/THSarabun Italic.ttf',
+                                format: 'truetype'
+                            }]
+                        },
+                        {
+                            family: 'THSarabunPSK',
+                            style: 'italic',
+                            weight: '700',
+                            src: [{
+                                url: '/fonts/THSarabun BoldItalic.ttf',
                                 format: 'truetype'
                             }]
                         }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -13,6 +13,7 @@ const TutorialPage = lazy(() => import('./pages/TutorialPage'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
 const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel })));
 const RoleSelectionPage = lazy(() => import('./pages/RoleSelectionPage').then(m => ({ default: m.RoleSelectionPage })));
+const StudentClassroomGate = lazy(() => import('./pages/StudentClassroomGate').then(m => ({ default: m.StudentClassroomGate })));
 import { StudentOnboarding } from './components/StudentOnboarding';
 import FloatingChatWidget from './components/FloatingChatWidget';
 import { useAuth } from './contexts/AuthContext';
@@ -56,12 +57,7 @@ const MainRoutes = () => {
             <AnimatePresence mode="wait">
                 <Routes location={location}>
                     <Route path="/" element={
-                        user ? (
-                            !userRole ? <Navigate to="/menu" replace /> :
-                            userRole === 'admin' ? <Navigate to="/admin" replace /> :
-                            userRole === 'teacher' ? <Navigate to="/teacher" replace /> :
-                            <Navigate to="/student" replace />
-                        ) : renderHome()
+                        user ? <Navigate to="/menu" replace /> : renderHome()
                     } />
                     
                     {/* Role Selection */}
@@ -74,7 +70,8 @@ const MainRoutes = () => {
                     <Route path="/teacher/*" element={userRole === 'teacher' ? <TeacherDashboard /> : <Navigate to="/menu" replace />} />
                     
                     {/* Student Routes */}
-                    <Route path="/student" element={userRole === 'student' ? <HomePage /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student" element={userRole === 'student' ? <StudentClassroomGate /> : <Navigate to="/menu" replace />} />
+                    <Route path="/student/dashboard" element={userRole === 'student' ? <HomePage /> : <Navigate to="/menu" replace />} />
                     <Route path="/student/onboarding" element={userRole === 'student' ? <StudentOnboarding /> : <Navigate to="/menu" replace />} />
                     <Route path="/student/:isKey" element={userRole === 'student' ? <ISPage /> : <Navigate to="/menu" replace />} />
                     <Route path="/student/:isKey/:topicIndex" element={userRole === 'student' ? <TopicPage /> : <Navigate to="/menu" replace />} />

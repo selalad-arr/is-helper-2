@@ -10,11 +10,14 @@ export const BottomNav = () => {
     const { switchRole, user, userRole } = useAuth();
 
     const navItems = [
-        { path: userRole === 'student' ? '/student' : '/', icon: HomeIcon, label: 'หน้าแรก' },
+        { path: '/', icon: HomeIcon, label: 'หน้าแรก' },
         { path: userRole === 'student' ? '/student/tutorial' : '/tutorial', icon: QuestionMarkCircleIcon, label: 'คู่มือ' },
         { 
             isAction: true, 
-            action: switchRole, 
+            action: async () => {
+                await switchRole();
+                navigate('/menu');
+            }, 
             icon: ShareIcon, 
             label: 'สลับสถานะ', 
             iconClass: 'rotate-180 text-emerald-500' 

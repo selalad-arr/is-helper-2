@@ -4,7 +4,7 @@ const pdfStyles: { [key: string]: React.CSSProperties } = {
     page: {
         backgroundColor: 'white',
         color: 'black',
-        fontFamily: 'Sarabun, sans-serif',
+        fontFamily: 'THSarabunPSK, sans-serif',
         width: '827px',
         boxSizing: 'border-box',
         overflowWrap: 'break-word',
@@ -124,7 +124,7 @@ const PrintableOutline = ({ values }: { values: any }) => {
                 <p>............../............../..............</p>
             </div>
             <div style={{ textAlign: 'center', paddingTop: '50pt' }}>
-                 <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'Sarabun, sans-serif' }}>
+                 <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'THSarabunPSK, sans-serif' }}>
                     สร้างมาจาก IS Helper
                 </p>
             </div>

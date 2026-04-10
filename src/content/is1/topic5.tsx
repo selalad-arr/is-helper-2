@@ -120,20 +120,38 @@ const Topic5 = () => {
                     margin: [0, 0, 0, 0], // Margins handled by styled divs
                     fontFaces: [
                         {
-                            family: 'Sarabun',
+                            family: 'THSarabunPSK',
                             style: 'normal',
                             weight: 'normal',
                             src: [{
-                                url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Regular.ttf',
+                                url: '/fonts/THSarabun.ttf',
                                 format: 'truetype'
                             }]
                         },
                         {
-                            family: 'Sarabun',
+                            family: 'THSarabunPSK',
                             style: 'normal',
-                            weight: 'bold',
+                            weight: '700',
                             src: [{
-                                url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/sarabun/Sarabun-Bold.ttf',
+                                url: '/fonts/THSarabun Bold.ttf',
+                                format: 'truetype'
+                            }]
+                        },
+                        {
+                            family: 'THSarabunPSK',
+                            style: 'italic',
+                            weight: 'normal',
+                            src: [{
+                                url: '/fonts/THSarabun Italic.ttf',
+                                format: 'truetype'
+                            }]
+                        },
+                        {
+                            family: 'THSarabunPSK',
+                            style: 'italic',
+                            weight: '700',
+                            src: [{
+                                url: '/fonts/THSarabun BoldItalic.ttf',
                                 format: 'truetype'
                             }]
                         }

@@ -11,7 +11,7 @@ import ProjectTopic9 from './topic9';
 import ProjectTopic10 from './topic10';
 import ProjectTopic11 from './topic11';
 import ProjectTopic12 from './topic12';
-import ProjectTopic13 from './topic13';
+
 import AssistantPage from './assistant';
 
 export const project_creation = {
@@ -29,7 +29,7 @@ export const project_creation = {
       { title: 'ก้าวที่ 10: การเขียนและออกแบบการแสดงผลการทดลอง (บทที่ 4) 🔍', details: ProjectTopic10 },
       { title: 'ก้าวที่ 11: การเขียนสรุปผล อภิปรายผล และข้อเสนอแนะ (บทที่ 5) 🏁', details: ProjectTopic11 },
       { title: 'ก้าวที่ 12: การนำเสนอโครงงาน การทำบอร์ดโครงงาน และโปสเตอร์โครงงาน 🖼️', details: ProjectTopic12 },
-      { title: 'ก้าวที่ 13: การวัดผลและประเมินผล 📏', details: ProjectTopic13 },
+
       { title: 'ผู้ช่วย AI ทั่วไป 🤖', details: AssistantPage },
     ]
 };

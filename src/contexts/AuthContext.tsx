@@ -12,9 +12,14 @@ interface AuthContextType {
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
   login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
+<<<<<<< HEAD
+=======
+
+>>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   joinClassroom: (classCode: string) => Promise<void>;
+  selectClassroom: (classId: string | null) => Promise<void>;
   selectRole: (role: 'student' | 'teacher' | 'admin') => Promise<void>;
   switchRole: () => Promise<void>;
   authError: string | null;
@@ -27,9 +32,14 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   loading: true,
   login: async () => {},
+<<<<<<< HEAD
+=======
+
+>>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
   logout: async () => {},
   updateProfile: async () => {},
   joinClassroom: async () => {},
+  selectClassroom: async () => {},
   selectRole: async () => {},
   switchRole: async () => {},
   authError: null,
@@ -146,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Find classroom by code
     const classroomsRef = collection(db, 'classrooms');
-    const { query, where, getDocs, updateDoc, increment } = await import('firebase/firestore');
+    const { query, where, getDocs, updateDoc, increment, arrayUnion } = await import('firebase/firestore');
     const q = query(classroomsRef, where('classCode', '==', classCode));
     const querySnapshot = await getDocs(q);
     
@@ -157,12 +167,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const classroomDoc = querySnapshot.docs[0];
     const classId = classroomDoc.id;
     
-    // Update user's classId
+    // Update user's classId and add to history
     const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, { classId });
+    await updateDoc(userRef, { 
+      classId,
+      classroomIds: arrayUnion(classId)
+    });
     
     // Increment student count in classroom
     await updateDoc(classroomDoc.ref, { studentCount: increment(1) });
+  };
+
+  const selectClassroom = async (classId: string | null) => {
+    if (!user) return;
+    const { updateDoc } = await import('firebase/firestore');
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, { classId });
   };
 
   const clearError = () => setAuthError(null);
@@ -282,6 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       updateProfile,
       joinClassroom,
+      selectClassroom,
       selectRole,
       switchRole,
       authError,

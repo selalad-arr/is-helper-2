@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApiSettings } from '../../contexts/ApiSettingsContext';
 import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon, AcademicCapIcon, CheckCircleIcon } from '../../ui/icons';
@@ -7,6 +7,7 @@ import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon, AcademicCa
 export const Header = () => {
     const { user, userRole, login, logout, switchRole } = useAuth();
     const { useFreeQuota, quotaUsed, customApiKey } = useApiSettings();
+    const navigate = useNavigate();
 
     const handleShare = async () => {
         // Use the shared app URL if available, otherwise fallback to the current origin
@@ -31,7 +32,7 @@ export const Header = () => {
     return (
         <header className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 border-b border-slate-200/50 dark:border-slate-800/50">
             <div className="container mx-auto flex items-center justify-between">
-                 <Link to={userRole === 'student' ? '/student' : (user && userRole === 'teacher') ? '/teacher' : (user && userRole === 'admin') ? '/admin' : (user ? '/menu' : '/')} className="flex items-center gap-2 group">
+                 <Link to="/" className="flex items-center gap-2 group">
                     <div className="bg-sky-500/10 text-sky-600 dark:text-sky-400 p-2 rounded-xl group-hover:bg-sky-500/20 transition-colors">
                         <BookOpenIcon className="w-6 h-6" />
                     </div>
@@ -82,7 +83,7 @@ export const Header = () => {
 
                     {user && (
                         <div className="hidden md:flex items-center gap-2">
-                             <Link to={userRole === 'student' ? '/student' : '/'} title="หน้าแรก" className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all font-bold text-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                             <Link to="/" title="หน้าแรก" className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all font-bold text-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
                                 <HomeIcon className="w-5 h-5 text-sky-500" />
                                 <span>หน้าแรก</span>
                             </Link>
@@ -102,7 +103,10 @@ export const Header = () => {
                             )}
                             
                             <button 
-                                onClick={switchRole}
+                                onClick={async () => {
+                                    await switchRole();
+                                    navigate('/menu');
+                                }}
                                 title="สลับสถานะการใช้งาน"
                                 className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all font-bold text-sm border border-slate-200 dark:border-slate-700 shadow-sm"
                             >
