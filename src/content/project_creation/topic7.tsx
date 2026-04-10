@@ -1,35 +1,28 @@
 import React from 'react';
 import { useProjectData } from '../../hooks/useProjectData';
-import ChapterDraftingAssistant from '../../components/ChapterDraftingAssistant';
+import Topic3DataCollectionFlow from '../../components/Topic3DataCollectionFlow';
+import { Key } from 'lucide-react';
 
 const ProjectTopic7 = () => {
-    const { projectTitle, coreConcept, researchData } = useProjectData();
+    const { projectTitle, setResearchData } = useProjectData();
 
     return (
-        <div>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 7: วางแผนการทดลองให้แม่นยำ 🔮</h3>
-            <div className="space-y-4 text-slate-700 dark:text-slate-300">
-                <p className="text-lg">
-                    ในส่วนนี้เราจะมาวางแผนกันว่า <strong>"เราจะทดลองยังไง"</strong> เพื่อให้ผลออกมาถูกต้องและน่าเชื่อถือที่สุดจ้า
+        <div className="space-y-6">
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 7: กุญแจสู่การค้นความรู้ (AI) 🔑</h3>
+            
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 mb-8">
+                <p className="text-indigo-800 dark:text-indigo-300 leading-relaxed italic">
+                    "ก่อนจะเริ่มทดลอง เราต้องรู้ก่อนว่าคนอื่นเคยทำอะไรไว้บ้าง พี่ AI จะช่วยหา 'คำสำคัญ' (Keywords) และแหล่งข้อมูลที่เกี่ยวข้องให้ครับ"
                 </p>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <p className="font-semibold mb-2 text-sky-600 dark:text-sky-400">สิ่งที่ต้องเตรียมคิด:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                        <li><strong>สิ่งที่ใช้ทดลอง:</strong> เราจะทดลองกับอะไรดีนะ?</li>
-                        <li><strong>วิธีทดลอง:</strong> เราจะทำอะไรกับมันบ้าง?</li>
-                        <li><strong>ทำซ้ำกี่ครั้ง:</strong> ทดลองหลายๆ รอบเพื่อให้แน่ใจว่าผลเหมือนเดิมจ้า</li>
-                        <li><strong>การสุ่ม:</strong> เลือกตัวอย่างแบบไม่ลำเอียง เพื่อความยุติธรรมนะ</li>
-                    </ul>
-                </div>
             </div>
 
-            <ChapterDraftingAssistant 
-                chapterNumber={3} 
-                stepNumber={7}
-                projectTitle={projectTitle} 
-                coreConcept={coreConcept} 
-                researchData={researchData}
-            />
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <Key className="w-5 h-5 text-indigo-500" />
+                    <h4 className="font-semibold text-slate-700 dark:text-slate-300">ค้นหาและรวบรวมข้อมูลสนับสนุน</h4>
+                </div>
+                <Topic3DataCollectionFlow projectTitle={projectTitle} setResearchData={setResearchData} />
+            </div>
         </div>
     );
 };

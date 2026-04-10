@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { IS_CONFIG } from '../content';
 import { ICONS, CheckIcon, ChevronRightIcon, ArrowLeftIcon } from '../ui/icons';
 import { useFirestoreData } from '../hooks/useFirestore';
@@ -27,6 +27,16 @@ export const ISPage = () => {
             navigate('/menu');
         }
     }, [config, navigate]);
+
+    const [expandedPhases, setExpandedPhases] = React.useState<number[]>([0]); // Default expand first phase
+
+    const togglePhase = (index: number) => {
+        setExpandedPhases(prev => 
+            prev.includes(index) 
+                ? prev.filter(i => i !== index) 
+                : [...prev, index]
+        );
+    };
 
     if (!config) {
         return <div className="text-center p-8">ไม่พบรายวิชาที่ต้องการ</div>;
@@ -86,43 +96,118 @@ export const ISPage = () => {
                         <p className="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">ศึกษาตามลำดับขั้นตอนเพื่อความเข้าใจที่ครบถ้วน</p>
                     </div>
                     <div className="divide-y-2 divide-slate-50 dark:divide-slate-700/30 relative z-10">
-                        {config.topics.map((topic, index) => {
-                            const isVisited = visitedTopics.includes(index);
-                             // @ts-ignore
-                            const Icon = ICONS[config.icon] || CheckIcon;
-                            return (
-                                <Link 
-                                    to={`/student/${isKey}/${index}`} 
-                                    key={index} 
-                                    className="group flex items-center justify-between p-4 md:p-6 hover:bg-sky-50 dark:hover:bg-slate-700/30 transition-colors duration-200"
-                                    onClick={() => {
-                                        trackEvent('select_topic', {
-                                            is_key: isKey,
-                                            topic_index: index,
-                                            topic_title: topic.title,
-                                        });
-                                    }}
-                                >
-                                    <div className="flex items-center gap-3 md:gap-5">
-                                        <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-[1rem] flex items-center justify-center text-sm md:text-base font-bold transition-all transform group-hover:scale-110 group-hover:rotate-3 ${
-                                            isVisited 
-                                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 shadow-sm' 
-                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 group-hover:bg-sky-100 group-hover:text-sky-600 dark:group-hover:bg-sky-900/40 dark:group-hover:text-sky-400 shadow-sm'
-                                        }`}>
-                                            {isVisited ? <CheckIcon className="w-5 h-5 md:w-6 md:h-6" /> : index + 1}
-                                        </div>
-                                        <div>
-                                            <h4 className={`font-bold text-base md:text-lg transition-colors ${
-                                                isVisited ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400'
-                                            }`}>{topic.title}</h4>
-                                        </div>
+                        {/* @ts-ignore */}
+                        {config.phases ? (
+                            // Grouped View (Phases)
+                            // @ts-ignore
+                            config.phases.map((phase: any, pIndex: number) => {
+                                const isExpanded = expandedPhases.includes(pIndex);
+                                return (
+                                    <div key={pIndex} className="bg-white dark:bg-slate-800">
+                                        <button 
+                                            onClick={() => togglePhase(pIndex)}
+                                            className="w-full text-left p-6 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center group transition-colors hover:bg-slate-100 dark:hover:bg-slate-900/40"
+                                        >
+                                            <div>
+                                                <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                                                    {phase.title}
+                                                </h4>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{phase.description}</p>
+                                            </div>
+                                            <ChevronRightIcon className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-90 text-sky-500' : ''}`} />
+                                        </button>
+                                        
+                                        <AnimatePresence>
+                                            {isExpanded && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden divide-y divide-slate-50 dark:divide-slate-700/30"
+                                                >
+                                                    {phase.topicIndices.map((tIdx: number) => {
+                                                        const topic = config.topics[tIdx];
+                                                        if (!topic) return null;
+                                                        const isVisited = visitedTopics.includes(tIdx);
+                                                        return (
+                                                            <Link 
+                                                                to={`/student/${isKey}/${tIdx}`} 
+                                                                key={tIdx} 
+                                                                className="group flex items-center justify-between p-4 md:p-6 hover:bg-sky-50 dark:hover:bg-slate-700/30 transition-colors duration-200"
+                                                                onClick={() => {
+                                                                    trackEvent('select_topic', {
+                                                                        is_key: isKey,
+                                                                        topic_index: tIdx,
+                                                                        topic_title: topic.title,
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <div className="flex items-center gap-3 md:gap-5">
+                                                                    <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-[1rem] flex items-center justify-center text-sm md:text-base font-bold transition-all transform group-hover:scale-110 group-hover:rotate-3 ${
+                                                                        isVisited 
+                                                                            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 shadow-sm' 
+                                                                            : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 group-hover:bg-sky-100 group-hover:text-sky-600 dark:group-hover:bg-sky-900/40 dark:group-hover:text-sky-400 shadow-sm'
+                                                                    }`}>
+                                                                        {isVisited ? <CheckIcon className="w-5 h-5 md:w-6 md:h-6" /> : tIdx + 1}
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className={`font-bold text-base md:text-lg transition-colors ${
+                                                                            isVisited ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400'
+                                                                        }`}>{topic.title}</h4>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-transparent group-hover:bg-white dark:group-hover:bg-slate-800 shadow-none group-hover:shadow-sm transition-all flex-shrink-0 ml-2">
+                                                                    <ChevronRightIcon className="w-4 h-4 md:w-5 md:h-5 text-slate-400 group-hover:text-sky-500 transform group-hover:translate-x-1 transition-all" />
+                                                                </div>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
-                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-transparent group-hover:bg-white dark:group-hover:bg-slate-800 shadow-none group-hover:shadow-sm transition-all flex-shrink-0 ml-2">
-                                        <ChevronRightIcon className="w-4 h-4 md:w-5 md:h-5 text-slate-400 group-hover:text-sky-500 transform group-hover:translate-x-1 transition-all" />
-                                    </div>
-                                </Link>
-                            );
-                        })}
+                                );
+                            })
+                        ) : (
+                            // Original Flat View
+                            config.topics.map((topic, index) => {
+                                const isVisited = visitedTopics.includes(index);
+                                 // @ts-ignore
+                                const Icon = ICONS[config.icon] || CheckIcon;
+                                return (
+                                    <Link 
+                                        to={`/student/${isKey}/${index}`} 
+                                        key={index} 
+                                        className="group flex items-center justify-between p-4 md:p-6 hover:bg-sky-50 dark:hover:bg-slate-700/30 transition-colors duration-200"
+                                        onClick={() => {
+                                            trackEvent('select_topic', {
+                                                is_key: isKey,
+                                                topic_index: index,
+                                                topic_title: topic.title,
+                                            });
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3 md:gap-5">
+                                            <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-[1rem] flex items-center justify-center text-sm md:text-base font-bold transition-all transform group-hover:scale-110 group-hover:rotate-3 ${
+                                                isVisited 
+                                                    ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 shadow-sm' 
+                                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 group-hover:bg-sky-100 group-hover:text-sky-600 dark:group-hover:bg-sky-900/40 dark:group-hover:text-sky-400 shadow-sm'
+                                            }`}>
+                                                {isVisited ? <CheckIcon className="w-5 h-5 md:w-6 md:h-6" /> : index + 1}
+                                            </div>
+                                            <div>
+                                                <h4 className={`font-bold text-base md:text-lg transition-colors ${
+                                                    isVisited ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400'
+                                                }`}>{topic.title}</h4>
+                                            </div>
+                                        </div>
+                                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-transparent group-hover:bg-white dark:group-hover:bg-slate-800 shadow-none group-hover:shadow-sm transition-all flex-shrink-0 ml-2">
+                                            <ChevronRightIcon className="w-4 h-4 md:w-5 md:h-5 text-slate-400 group-hover:text-sky-500 transform group-hover:translate-x-1 transition-all" />
+                                        </div>
+                                    </Link>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>

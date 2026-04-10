@@ -92,15 +92,11 @@ export const LoginModal: React.FC = () => {
                 เข้าสู่ระบบด้วย Google
             </button>
 
-<<<<<<< HEAD
-
-=======
             <div className="relative mt-2">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
                     <div className="w-full border-t border-slate-100 dark:border-slate-700/50"></div>
                 </div>
             </div>
->>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
 
 
             <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center px-4 leading-relaxed font-medium">

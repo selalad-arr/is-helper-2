@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: 'THSarabunPSK';
   src: url('/fonts/THSarabun.ttf') format('truetype');

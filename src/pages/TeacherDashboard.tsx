@@ -510,6 +510,8 @@ export const TeacherDashboard: React.FC = () => {
   const [selectedClassroom, setSelectedClassroom] = useState<any | null>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [studentProjects, setStudentProjects] = useState<Record<string, any>>({});
+  const [studentProgress, setStudentProgress] = useState<Record<string, any>>({});
+  const [studentReports, setStudentReports] = useState<Record<string, any>>({});
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
@@ -583,7 +585,7 @@ export const TeacherDashboard: React.FC = () => {
     }
 
     // Function to fetch projects in batches of 30 (Firestore 'in' query limit)
-    const fetchProjects = async () => {
+    const fetchProjectsAndProgress = async () => {
       const studentIds = students.map(s => s.id);
       const batches = [];
       
@@ -592,28 +594,53 @@ export const TeacherDashboard: React.FC = () => {
       }
 
       const allProjects: Record<string, any> = {};
+      const allProgress: Record<string, any> = {};
+      const allReports: Record<string, any> = {};
       
       try {
         const { getDocs, query, collection, where } = await import('firebase/firestore');
         
         await Promise.all(batches.map(async (batchIds) => {
-          const q = query(
+          // Projects
+          const qProj = query(
             collection(db, 'user_projects'),
             where('uid', 'in', batchIds)
           );
-          const snapshot = await getDocs(q);
-          snapshot.forEach(doc => {
+          const snapProj = await getDocs(qProj);
+          snapProj.forEach(doc => {
             allProjects[doc.id] = doc.data();
+          });
+
+          // Progress
+          const qProg = query(
+            collection(db, 'user_progress'),
+            where('uid', 'in', batchIds)
+          );
+          const snapProg = await getDocs(qProg);
+          snapProg.forEach(doc => {
+            allProgress[doc.id] = doc.data();
+          });
+
+          // Reports (for the link)
+          const qReport = query(
+             collection(db, 'user_reports'),
+             where('uid', 'in', batchIds)
+          );
+          const snapReport = await getDocs(qReport);
+          snapReport.forEach(doc => {
+            allReports[doc.id] = doc.data();
           });
         }));
         
         setStudentProjects(allProjects);
+        setStudentProgress(allProgress);
+        setStudentReports(allReports);
       } catch (err) {
-        console.error("Error fetching student projects in batch:", err);
+        console.error("Error fetching student details in batch:", err);
       }
     };
 
-    fetchProjects();
+    fetchProjectsAndProgress();
     
     // We fetch once on classroom/student list change to save resources.
     // Real-time updates for ALL students at once might be too heavy, 
@@ -925,25 +952,31 @@ export const TeacherDashboard: React.FC = () => {
                       </div>
                       
                       <div className="overflow-x-auto">
-                          <table className="w-full text-left border-collapse">
+                          <table className="w-full text-left border-collapse min-w-[1000px]">
                               <thead>
-                                  <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-white/20 dark:border-slate-800/50">
-                                      <th className="px-10 py-5">นักเรียน</th>
-                                      <th className="px-10 py-5 text-center">ความก้าวหน้า IS (รวม)</th>
-                                      <th className="px-10 py-5 text-right">ดำเนินการ</th>
+                                  <tr className="bg-slate-50/80 dark:bg-slate-900/80 text-slate-500 text-[11px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 backdrop-blur-sm">
+                                      <th className="px-8 py-6 border-r border-slate-200/50 dark:border-slate-800/50">ชื่อ - สกุล</th>
+                                      <th className="px-6 py-6 border-r border-slate-200/50 dark:border-slate-800/50 text-center">ห้อง</th>
+                                      <th className="px-6 py-6 border-r border-slate-200/50 dark:border-slate-800/50 text-center">เลขที่</th>
+                                      <th className="px-8 py-6 border-r border-slate-200/50 dark:border-slate-800/50">วิชา</th>
+                                      <th className="px-8 py-6 border-r border-slate-200/50 dark:border-slate-800/50 text-center">ร้อยละความก้าวหน้า</th>
+                                      <th className="px-8 py-6 border-r border-slate-200/50 dark:border-slate-800/50">link เล่มรายงานนักเรียน</th>
+                                      <th className="px-8 py-6 text-center">จัดการ</th>
                                   </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/30">
+                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                                   {error && (
-                                      <tr><td colSpan={3} className="px-10 py-8 text-center text-red-500 font-bold bg-red-50/50 dark:bg-red-900/10 uppercase text-[10px] tracking-widest">
+                                      <tr><td colSpan={7} className="px-8 py-10 text-center text-red-500 font-black bg-red-50/30 dark:bg-red-900/10 uppercase text-xs tracking-widest">
                                           {error}
                                       </td></tr>
                                   )}
                                   {students.length === 0 && !error ? (
-                                      <tr><td colSpan={3} className="px-10 py-24 text-center">
-                                          <div className="flex flex-col items-center gap-3">
-                                              <UsersIcon className="w-12 h-12 text-slate-200" />
-                                              <p className="text-slate-400 font-bold italic">ยังไม่มีนักเรียนเข้าร่วมห้องเรียนนี้ หรือกำลังโหลดข้อมูล...</p>
+                                      <tr><td colSpan={7} className="px-8 py-32 text-center">
+                                          <div className="flex flex-col items-center gap-4">
+                                              <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2">
+                                                 <UsersIcon className="w-10 h-10 text-slate-300" />
+                                              </div>
+                                              <p className="text-slate-400 font-bold italic text-lg tracking-tight">ยังไม่มีนักเรียนเข้าร่วมห้องเรียนนี้ หรือกำลังโหลดข้อมูล...</p>
                                           </div>
                                       </td></tr>
                                   ) : (
@@ -955,35 +988,94 @@ export const TeacherDashboard: React.FC = () => {
                                                  (s.classNo || '').toString().includes(searchStr);
                                       }).map(s => {
                                           const proj = studentProjects[s.id];
-                                          const prog = calculateProgress(proj);
+                                          const progress = studentProgress[s.id];
+                                          const report = studentReports[s.id];
+                                          
+                                          const calcISProgress = (isKey: string) => {
+                                              if (!progress) return 0;
+                                              const config = IS_CONFIG[isKey as keyof typeof IS_CONFIG];
+                                              if (!config || !('topics' in config)) return 0;
+                                              const visitedTopics = progress[`visited_${isKey}`] || [];
+                                              const totalTopics = config.topics.length;
+                                              return totalTopics > 0 ? Math.round((visitedTopics.length / totalTopics) * 100) : 0;
+                                          };
+
+                                          const projectProgress = calculateProgress(proj);
+                                          const is1Progress = calcISProgress('is1');
+                                          const is2Progress = calcISProgress('is2');
+                                          const is3Progress = calcISProgress('is3');
+
                                           return (
-                                              <tr key={s.id} className="hover:bg-sky-50/30 dark:hover:bg-sky-900/10 transition-colors group">
-                                                  <td className="px-10 py-7">
-                                                      <div className="flex items-center gap-5">
-                                                          <div className="relative group/avatar">
-                                                              <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-sky-100 to-indigo-100 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-xl shadow-inner overflow-hidden border-2 border-white dark:border-slate-700">
-                                                                  {s.photoURL ? <img src={s.photoURL} alt="" className="w-full h-full object-cover transition-transform group-hover/avatar:scale-110" /> : <UserCircleIcon className="w-8 h-8" />}
-                                                              </div>
-                                                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+                                              <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all group border-b border-slate-100 dark:border-slate-800 last:border-0">
+                                                  <td className="px-8 py-6 border-r border-slate-100 dark:border-slate-800/50">
+                                                      <div className="flex items-center gap-4">
+                                                          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                              {s.photoURL ? <img src={s.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircleIcon className="w-7 h-7" />}
                                                           </div>
-                                                          <div>
-                                                              <div className="font-black text-slate-900 dark:text-white uppercase leading-tight group-hover:text-sky-600 transition-colors">{s.displayName || 'ไม่มีชื่อ'}</div>
-                                                              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">เลขที่ {s.classNo || '??'} • {(s.email || '').split('@')[0] || 'Unknown'}</div>
+                                                          <div className="font-black text-slate-900 dark:text-white uppercase leading-tight group-hover:text-sky-600 transition-colors">
+                                                              {s.displayName || 'ไม่มีชื่อ'}
                                                           </div>
                                                       </div>
                                                   </td>
-                                                  <td className="px-10 py-7">
-                                                      <div className="max-w-[180px] mx-auto">
-                                                          <ProgressBar progress={prog} label={proj?.is1ProjectTitle ? 'IS1 Active' : 'ยังไม่ระบุหัวข้อ'} />
+                                                  <td className="px-6 py-6 border-r border-slate-100 dark:border-slate-800/50 text-center font-bold text-slate-600 dark:text-slate-400">
+                                                      {selectedClassroom.className || '-'}
+                                                  </td>
+                                                  <td className="px-6 py-6 border-r border-slate-100 dark:border-slate-800/50 text-center font-black text-sky-600 dark:text-sky-400">
+                                                      {s.classNo || '-'}
+                                                  </td>
+                                                  <td className="p-0 border-r border-slate-100 dark:border-slate-800/50">
+                                                      <div className="divide-y divide-slate-100 dark:divide-slate-800/50 h-full">
+                                                          <div className="px-8 py-3 text-xs font-bold text-slate-600 dark:text-slate-400">ทำโครงงาน</div>
+                                                          <div className="px-8 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-900/10">IS1</div>
+                                                          <div className="px-8 py-3 text-xs font-bold text-slate-600 dark:text-slate-400">IS2</div>
+                                                          <div className="px-8 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-900/10">IS3</div>
                                                       </div>
                                                   </td>
-                                                  <td className="px-10 py-7 text-right">
+                                                  <td className="p-0 border-r border-slate-100 dark:border-slate-800/50 text-center">
+                                                       <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                                          <div className="py-3 font-black text-slate-700 dark:text-slate-300">{projectProgress}%</div>
+                                                          <div className="py-3 font-black text-slate-700 dark:text-slate-300 bg-slate-50/30 dark:bg-slate-900/10">{is1Progress}%</div>
+                                                          <div className="py-3 font-black text-slate-700 dark:text-slate-300">{is2Progress}%</div>
+                                                          <div className="py-3 font-black text-slate-700 dark:text-slate-300 bg-slate-50/30 dark:bg-slate-900/10">{is3Progress}%</div>
+                                                      </div>
+                                                  </td>
+                                                  <td className="p-0 border-r border-slate-100 dark:border-slate-800/50">
+                                                       <div className="divide-y divide-slate-100 dark:divide-slate-800/50 h-full">
+                                                          {/* ทำโครงงาน Report Link */}
+                                                          <div className="px-8 py-3 h-[41px] flex items-center">
+                                                              {report ? (
+                                                                  <Link 
+                                                                    to={`/teacher/classrooms/${selectedClassroom.id}/student/${s.id}`}
+                                                                    className="inline-flex items-center gap-2 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors"
+                                                                  >
+                                                                    <EyeIcon className="w-4 h-4" />
+                                                                    link : เล่มโครงงาน
+                                                                  </Link>
+                                                              ) : (
+                                                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic opacity-50">- ไม่มีข้อมูล -</span>
+                                                              )}
+                                                          </div>
+                                                          {/* IS1 Placeholder */}
+                                                          <div className="px-8 py-3 h-[41px] flex items-center bg-slate-50/30 dark:bg-slate-900/10">
+                                                              <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest italic">- รอระบบ IS1 -</span>
+                                                          </div>
+                                                          {/* IS2 Placeholder */}
+                                                          <div className="px-8 py-3 h-[41px] flex items-center">
+                                                              <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest italic">- รอระบบ IS2 -</span>
+                                                          </div>
+                                                          {/* IS3 Placeholder */}
+                                                          <div className="px-8 py-3 h-[41px] flex items-center bg-slate-50/30 dark:bg-slate-900/10">
+                                                              <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest italic">- รอระบบ IS3 -</span>
+                                                          </div>
+                                                      </div>
+                                                  </td>
+                                                  <td className="px-8 py-6 text-center">
                                                       <Link 
                                                         to={`/teacher/classrooms/${selectedClassroom.id}/student/${s.id}`}
-                                                        className="px-5 py-2.5 bg-white dark:bg-slate-900 hover:bg-sky-500 hover:text-white text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest rounded-xl border border-slate-200 dark:border-slate-700 transition-all shadow-sm flex items-center gap-2 ml-auto active:scale-95"
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-sky-50 dark:bg-sky-900/30 text-[10px] font-black uppercase text-sky-500 hover:bg-sky-500 hover:text-white rounded-xl transition-all shadow-sm"
                                                       >
-                                                          รายละเอียด
-                                                          <ChevronRightIcon className="w-4 h-4" />
+                                                          ข้อมูลเชิงลึก
+                                                          <ChevronRightIcon className="w-3 h-3" />
                                                       </Link>
                                                   </td>
                                               </tr>
@@ -1065,16 +1157,7 @@ export const TeacherDashboard: React.FC = () => {
   };
 
   const handleDeleteClass = async (id: string) => {
-<<<<<<< HEAD
-    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้? ข้อมูลนักเรียนในห้องนี้จะไม่ถูกลบ แต่จะไม่อยู่ในห้องเรียนนี้อีกต่อไป')) {
-      try {
-        await deleteDoc(doc(db, 'classrooms', id));
-        alert('ลบห้องเรียนเรียบร้อยแล้ว');
-      } catch (err) {
-        console.error("Error deleting class:", err);
-        alert('เกิดข้อผิดพลาดในการลบห้องเรียน');
-=======
-    if (window.confirm('หากคุณลบห้องเรียนนี้ ข้อมูลสมาชิกนักเรียนจะถูกยกเลิกการเข้าถึงห้องเรียนนี้ทันที คุณแน่ใจหรือไม่?')) {
+    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องเรียนนี้? ข้อมูลนักเรียนในห้องนี้จะไม่ถูกลบ แต่จะไม่อยู่ในห้องเรียนนี้อีกต่อไป และนักเรียนจะถูกยกเลิกการเข้าถึงห้องเรียนนี้ทันที')) {
       try {
         await deleteDoc(doc(db, 'classrooms', id));
         // Find if this was the selected classroom and clear it if so
@@ -1082,10 +1165,10 @@ export const TeacherDashboard: React.FC = () => {
            setSelectedClassroom(null);
            navigate('/teacher/classrooms');
         }
+        alert('ลบห้องเรียนเรียบร้อยแล้ว');
       } catch (err: any) {
         console.error("Error deleting class:", err);
         alert('ไม่สามารถลบห้องเรียนได้: ' + err.message);
->>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
       }
     }
   };

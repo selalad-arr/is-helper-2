@@ -38,7 +38,6 @@ export const HomePage = () => {
         return unsubscribe;
     }, [user, userRole]);
 
-<<<<<<< HEAD
     useEffect(() => {
         if (!user || userRole !== 'student') return;
         const projectRef = doc(db, 'user_projects', user.uid);
@@ -64,22 +63,17 @@ export const HomePage = () => {
 
         return unsubscribe;
     }, [user, userRole, userData?.classId]);
-=======
+
     // Redirect if classroom deleted
     useEffect(() => {
         if (userRole === 'student' && userData?.classId) {
-            const { onSnapshot, doc } = import('firebase/firestore');
-            let unsubscribe: () => void;
-            
-            import('firebase/firestore').then(firestore => {
-                const classroomRef = firestore.doc(db, 'classrooms', userData.classId);
-                unsubscribe = firestore.onSnapshot(classroomRef, (docSnap) => {
-                    if (!docSnap.exists()) {
-                        console.log("Current classroom deleted, redirecting to selection...");
-                        selectClassroom(null);
-                        navigate('/student');
-                    }
-                });
+            const classroomRef = doc(db, 'classrooms', userData.classId);
+            const unsubscribe = onSnapshot(classroomRef, (docSnap) => {
+                if (!docSnap.exists()) {
+                    console.log("Current classroom deleted, redirecting to selection...");
+                    selectClassroom(null);
+                    navigate('/student');
+                }
             });
 
             return () => {
@@ -87,7 +81,6 @@ export const HomePage = () => {
             };
         }
     }, [userRole, userData?.classId, navigate, selectClassroom]);
->>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
 
     const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();

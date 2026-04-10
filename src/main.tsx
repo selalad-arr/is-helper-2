@@ -6,6 +6,7 @@ import AnalyticsTracker from './components/AnalyticsTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import { ApiSettingsProvider } from './contexts/ApiSettingsContext';
+import './index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

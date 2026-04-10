@@ -12,10 +12,6 @@ interface AuthContextType {
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
   login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
-<<<<<<< HEAD
-=======
-
->>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   joinClassroom: (classCode: string) => Promise<void>;
@@ -32,10 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   loading: true,
   login: async () => {},
-<<<<<<< HEAD
-=======
 
->>>>>>> d79af3302899d2dc53cb02a623bd8db8f3ceaff5
   logout: async () => {},
   updateProfile: async () => {},
   joinClassroom: async () => {},
@@ -77,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Prevent infinite loops by checking if we have already processed this user UID
         if (processedUidRef.current === currentUser.uid) {
           setUser(currentUser);
+          setLoading(false);
           return;
         }
 
@@ -238,7 +232,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
-
 
 
   const selectRole = async (role: 'student' | 'teacher' | 'admin') => {

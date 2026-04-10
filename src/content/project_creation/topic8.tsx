@@ -1,34 +1,43 @@
 import React from 'react';
 import { useProjectData } from '../../hooks/useProjectData';
 import ChapterDraftingAssistant from '../../components/ChapterDraftingAssistant';
+import { BookOpen, CheckCircle } from 'lucide-react';
 
 const ProjectTopic8 = () => {
-    const { projectTitle, coreConcept, researchData } = useProjectData();
+    const { projectTitle, coreConcept, researchData, setResearchData } = useProjectData();
 
     return (
-        <div>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 8: ออกแบบสิ่งประดิษฐ์และเตรียมเก็บข้อมูล 🛠️</h3>
-            <div className="space-y-4 text-slate-700 dark:text-slate-300">
-                <p className="text-lg">
-                    ในส่วนนี้เราจะมาเป็น <strong>"นักออกแบบ"</strong> กัน! เราจะวางแผนว่าสิ่งประดิษฐ์ของเราหน้าตาเป็นยังไง และจะจดบันทึกข้อมูลตอนไหนดีจ้า
-                </p>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <p className="font-semibold mb-2 text-sky-600 dark:text-sky-400">สิ่งที่ต้องเตรียมทำ:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                        <li><strong>วาดแบบร่าง:</strong> ลองวาดรูปสิ่งประดิษฐ์หรือขั้นตอนการทดลองของเราดูนะ</li>
-                        <li><strong>แผนการจดข้อมูล:</strong> เราจะจดอะไรบ้าง? เช่น จดทุกวัน หรือจดทุกชั่วโมงดีนะ?</li>
-                        <li><strong>เตรียมอุปกรณ์:</strong> เช่น สมุดจด, ไม้บรรทัด, หรือกล้องถ่ายรูปจ้า</li>
-                    </ul>
+        <div className="space-y-10">
+            <div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 8: สะสมแต้มความรู้ (บทที่ 2) 📚</h3>
+                
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-6 mb-8">
+                    <h4 className="font-semibold text-lg mb-2 text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        คลังความรู้สะสม (ที่ได้จากการสืบค้นก้าวก่อนหน้า)
+                    </h4>
+                    <textarea
+                        value={researchData}
+                        onChange={(e) => setResearchData(e.target.value)}
+                        placeholder="สรุปข้อมูลที่หามาได้จะปรากฏที่นี่ เพื่อใช้เขียนบทที่ 2 จ้า..."
+                        rows={5}
+                        className="w-full p-4 rounded-xl border border-emerald-200 dark:border-emerald-700/50 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 transition-all resize-y text-xs font-mono"
+                    />
                 </div>
-            </div>
 
-            <ChapterDraftingAssistant 
-                chapterNumber={3} 
-                stepNumber={8}
-                projectTitle={projectTitle} 
-                coreConcept={coreConcept} 
-                researchData={researchData}
-            />
+                <div className="flex items-center gap-2 mb-4">
+                    <BookOpen className="w-5 h-5 text-indigo-500" />
+                    <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">ร่างเนื้อหาบทที่ 2 ✨</h4>
+                </div>
+
+                <ChapterDraftingAssistant 
+                    chapterNumber={2} 
+                    stepNumber={8}
+                    projectTitle={projectTitle} 
+                    coreConcept={coreConcept} 
+                    researchData={researchData}
+                />
+            </div>
         </div>
     );
 };

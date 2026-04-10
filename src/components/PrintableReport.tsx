@@ -22,8 +22,17 @@ const pdfStyles: { [key: string]: React.CSSProperties } = {
 
 
 const PrintableReport: React.FC<any> = ({
-    reportStructure, studentInputs, projectAbstract, authorName,
-    acknowledgements, references, customCoverText, schoolName, semester
+    reportStructure, 
+    studentInputs = {}, 
+    projectAbstract = '', 
+    authorName = '',
+    acknowledgements = '', 
+    references = '', 
+    customCoverText = '', 
+    schoolName = '', 
+    semester = '',
+    subjectName = '', 
+    subjectCode = ''
 }) => {
     return (
         <div style={{ width: '827px' }}>
@@ -39,7 +48,10 @@ const PrintableReport: React.FC<any> = ({
                     </div>
                     <div style={{paddingBottom: '60pt'}}>
                         <p style={{...pdfStyles.bodyText, whiteSpace: 'pre-wrap'}}>{customCoverText}</p>
-                        <p style={{...pdfStyles.bodyText, marginTop: '2rem'}}>{schoolName}</p>
+                        {subjectName && (
+                            <p style={pdfStyles.bodyText}>รายงานฉบับนี้เป็นส่วนหนึ่งของรายวิชา {subjectName} {subjectCode ? `(${subjectCode})` : ''}</p>
+                        )}
+                        <p style={{...pdfStyles.bodyText, marginTop: '1rem'}}>{schoolName}</p>
                         <p style={pdfStyles.bodyText}>{semester}</p>
                     </div>
                 </div>

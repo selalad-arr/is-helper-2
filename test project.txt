@@ -1,0 +1,113 @@
+
+ 
+
+
+T E A C H E R	A B S T R A C T
+Mr. Alipio s.    Lerazan Jr.
+Mr. Selalad    Aroontanya
+Dr. Waraporn  Jungtanasombut
+Mr. Sornchai   Jantee	The main objective of this project was to study the efficiency of coffee residue for delaying the ripening process of Hom Thong banana. Experiments were divided into 3 parts including 1) to investigate the appropriate quantity of coffee residue used to delay the ripening of Hom Thong banana, 2) to compare the ability of coffee residue and potassium permanganate for delaying the ripening of Hom Thong banana and 3) to study the effect of temperature used to activate coffee residue on absorption efficiency of methylene blue. Obtained results showed that coffee residue can delay the ripening process of Hom Thong banana as well as potassium permanganate. Moreover, cost of coffee residue application for delaying the ripening of Hom Thong banana was lower than potassium permanganate. Thus, the coffee residue (remaining biomaterial and safe to human and environment) can be used as an alternative material for delaying the ripening process of Hom Thong banana.
+
+Keyword :
+Coffee residue
+Hom Thong Banana
+Potassium permanganate
+Ripening banana	
+ 
+1. Introduction
+Banana is one kind of fruits that have been almost daily consumed by the human. This is because it has several necessary vitamins and minerals such as vitamins A, B, C, and E, as well as potassium, phosphorus, iron, calcium, etc. (Huang, Y.,2013) and inexpensive price. In Thailand, Hom Thong banana (Musa sp., AAA group, Gros Michel subgroup) is one type of the main banana cultivar that has been exported to aboard market, especially in Japan (Thanthummaroj, 2014). In 2014, Thailand exported 1,475 tons of Hom Thong banana to aboard market resulting in the export value of 45.15 million baht (Suriya et. al., 2017). Therefore, Hom Thong banana is one of the important economic crops in Thailand. Trade value of Hom Thong banana depends on the quality of it including whole complete fruit, firm fruit flesh, no bruise on the skin, no abnormal smell or taste, etc (Krisanapook, n.d.). However, one of the main problems causing the lower price of Hom Thong banana is the ripening process after postharvest. An early part of the ripening process can cause the softening of banana because of the loss of water from the peel and chemical changes in the cell wall (Amnuaysin et al., 2012). The delay of ripening process of fruit has been studied and investigated in many research works. Chemical used to delay the ripening of fruits consists of potassium permanganate, salicylic acid, gibberellic acid, 1- methylcyclopropenee, etc (Vendrell, 1969; Srivastava and Dwivedi 2000; Zewteret al., 2012). Although these chemicals can be used to delay the ripening process of fruits, however, they may cause harmful effects on human health and the environment. Thus, the use of environmentally friendly material for delaying postharvest ripening of fruits is an interesting alternative way. This idea leads to our research focusing on the application of coffee residue for delaying postharvest ripening of Hom Thong banana.
+The aims of our research consist of 1) to find the appropriate quantity of coffee residue for delaying the ripening process of HomThong banana, 2) to compare the ability of coffee residue and potassium permanganate for delaying the ripening of Hom Thong banana and 3) to study the effect of temperature used to activate coffee residue on absorption efficiency of methylene blue.
+
+2. Methodology
+	2.1 Investigation of the appropriate quantity of coffee residue for delaying the ripening process of Hom Thong banana
+ In this study, the experiment had been divided into 6 treatments including 1) in addition of Arabica coffee residue (control, T1), 2) Addition of 10 grams Arabica coffee residue (T2), 3) Addition of 20 grams Arabica coffee residue addition (T3), 4) Addition of 30 grams Arabica coffee residue addition (T4), 5) Addition of 40 grams Arabica coffee residue addition (T5) and 6) Addition of 50 grams Arabica coffee residue addition (T6). Arabica coffee residue used in this work obtained from Amazon Café. It was heated at 110 C for 24 h.
+Then, it was placed on desiccator containing silica gel for 30 min. 10 grams of dry Arabica coffee residue was transferred to a paper bag produced from mulberry paper and utilized as an adsorbent for delaying the ripening process of Hom Thong banana. In each treatment, one fruit of Hom Thong banana was put in the plastic bag. The average weight of Hom Thong banana was 207 grams. Next, a paper bag of adsorbent(Arabica coffee residue) was added in the plastic bag according to the studied amount (1 paper bag is 10 grams of coffee residue). Each treatment was performed 4 replicates.
+
+2.2 Comparative of the ability of coffee residue and potassium permanganate for delaying the ripening of Hom Thong banana
+	For this experiment, there were 2 treatments including 1) addition of 30 grams of coffee residue that was the most appropriate amount found in the previous study and 2) addition of 6 grams of potassium permanganate. Both materials (coffee residue and potassium permanganate) were contained in the mulberry paper bag. One fruit of HomThong banana and 30 grams of coffee residue (3 packs) were placed on a plastic bag. Meanwhile, one fruit of Hom Thong banana was placed on the plastic bag then, 1 pack of potassium permanganate (6 grams) was filled in the plastic bag. This experiment had been conducted 4 replicates. Moreover, prices of potassium permanganate and the coffee residue used for the delay the ripening process of Hom Thong banana were calculated and compared.
+
+2.3 Effect of temperature used to activate coffee residue on absorption efficiency of methylene blue
+The coffee residue was activated at different temperature including 110 C for 24 h, 400 C for 1 h and 500 C for 4 h, respectively. Absorption ability of activated coffee residue was evaluated from the adsorption percentage of 0.001%w/v methylene blue. The ratio between activated coffee residue and methylene blue was 1 gram per 10 ml. After adding the methylene blue solution into the test tube containing activated coffee residue, the test tube was shaken for 5 minutes and let the mixture stand for 5 minutes. Then, the mixture was filtered with 20-micron filter paper. The absorbance of the solution was measured by using UV-Vis spectrophotometer at 667 nm. Distilled water was used as the blank. 
+
+3. Result and discussion
+3.1 Investigation of the appropriate quantity of coffee residue for delaying the ripening process of Hom Thong banana
+ Results showed that in the fifth day of the experiment, Hom Thong banana in the control group (in addition of coffee residue) had the most ripening followed by the treatments of coffee residue addition of 10 and 20 grams, respectively.  While, the peel of Hom Thong bananas in the treatments of coffee residue addition with 30, 40 and 50 grams had slightly changed (Table 1). Therefore, the most appropriate quantity of coffee residue utilized to delay ripening of Hom Thong banana was 30 grams. 
+
+3.2 comparative of the ability of coffee residue and potassium permanganate for delaying the ripening of Hom Thong banana
+ Obtained results revealed that at zero to the fifth day of the experiment, Hom Thong banana delayed the ripening by coffee residue and potassium permanganate had a similar change. In conclusion, 30 grams of coffee residue can be used to delay the ripening process of Hom Thong banana as well as 6 grams of potassium permanganate (Table 2).
+Although, the amount of coffee residue used to delay the ripening process of Hom Thong banana was higher than potassium permanganate 5 times. However, using coffee residue to delay ripening can possibly reduce the cost of using potassium permanganate up to 160 million baht per year due to the fact that coffee residue is a waste obtained from coffee shops. Moreover, from the cost of both materials, we found that the utilization of coffee residue for delaying the ripening of Hom Thong banana has a lower price than potassium permanganate. This is because approximate 1 kilogram of Hom Thong banana must use coffee residue for delaying the ripening equal to 150 grams resulting in the cost of 3.663 baths (1.221 baths per 50 grams of coffee residue). While delaying the ripening process of 1 kilogram of Hom Thong banana by potassium permanganate must use 30 grams resulting in the cost of 6 baths (2 baths per 10 grams of potassium permanganate). 
+
+
+Table 1 Degree of ripening Hom Thong banana under different levels of coffee residue at 0-5 day of the experiment. 
+
+The weight of the coffee residue	Day0	Day 1	Day2	Day3	Day4	Day 5
+0 grams
+(0 paper bag)	 	 	 	 	 	 
+Ripeness level	2	3	4	5	6	7
+10  grams
+(1 paper bag)	 	 	 	 	 	 
+Ripeness level	2	3	4	5	6	7
+20 grams
+(2 paper bag)	 	 	 	 	 	 
+Ripeness level	2	3	4	5	6	7
+30  grams
+(3 paper bag)	 	 	 	 	 	 
+Ripeness level	2	2	3	4	5	6
+40  grams
+(4 paper bag)	 	 	 	 	 	 
+Ripeness level	2	2	3	3	4	5
+50  grams
+(5 paper bag)	 	 	 	 	 	 
+Ripeness level	2	2	3	3	4	5
+
+
+
+
+
+Table 2 Degree of ripening Hom Thong banana after treated with coffee residue and potassium permanganate at 0-5 day of the experiment. 
+
+Treatment	Day0	Day 1	Day2	Day3	Day4	Day 5
+10  grams of Coffee residue
+ 3 paper bag	 	 	 	 	 	 
+Ripeness level	2	2	3	4	5	6
+6 grams of potassium
+permanganate	 	 	 	 	 	 
+Ripeness level	2	2	3	4	5	6
+
+3.3 Effect of temperature used to activate coffee residue on absorption efficiency of methylene blue
+Coffee residue activated at 500 C for 4 h had the highest value of adsorption percent of methylene blue solution (95%) followed by coffee residue activated at 400 C for 1 h (94%) and 110 C for 24 h (86%), respectively (Figure 1-2). Therefore, we can conclude that temperature and time can affect the porosity of coffee that temperature and time can affect the porosity of coffee residue resulting in adsorption increase. The obtained results corresponded to Sangpongchai (2011)’s research reported that coffee residue calcined under higher temperature had a larger and more porosity structure.
+
+ 
+
+                               (a)      (b)       (c)      (d)
+Figure 1 Color of water used as blank (a) and methylene blue solution after treated with coffee residue activated at 110 C for 24 h (b),  400 C for 1 h (c) and 500 C for 4 h (d)
+
+ 
+
+                          110 C          400 C        500 C
+Figure 2 Adsorption percent of methylene blue of coffee residue   heated at different temperatures
+  Conclusion
+The experimental results revealed that coffee residue can be used as an alternative material for delaying the ripening of Hom Thong banana. The most appropriate amount of coffee residue applied to delay the ripening process of 207 grams Hom Thong banana was 30 grams. In addition, cost of coffee residue application for delaying the ripening of Hom Thong banana was cheaper than the application of potassium permanganate
+
+  Acknowledgments
+	We would like to grateful thank Department of          Chemistry, Faculty of Science and Technology, Kanchanaburi Rajabhat University for supporting an instrument used in this project. In addition, We wish to express our deepest gratitude to           Dr. Waraporn Jungtanasombut for valuable advice and readjusting this paperwork.
+
+ References
+ Huang, Y. 2013. Impact of Banana (Musa acuminata) ripening on resistant and non-resistant starch using hot-air and 
+microwave drying. Thesis Master of Science, Department of Bioresource Engineering, McGill University, Montreal, Canada.
+ Thanthummaroj, V. 2014. Japan-Thailand Economic Partnership Agreement (JTEPA) With Banana Exports of Thai Agricultural Cooperatives. In Diplomatic Executive Course, 6th year, DevawongseVaropakarn Institute of Foreign Affairs.
+ Suriya, O.; Jatuporn, C., Sukprasert, P. and Pattanakiat S. 2017. Factors affecting Cavendish banana production of farmers in NongSuea District, Pathum Thani Province. Panyapiwat Journal 9: 208-218.
+ Krisanapook, K. n.d. Thailand’s banana, coconut, mango and papaya industries: A country report. Food and Fertilizer Technology Center
+ Sangpongchai S. 2011. Adsorption of volatile organic compounds (VOCs) in an indoor environment using activated carbon produced from coffee bean residue. Thesis Master of Science program in Environmental Science, Chulalongkorn University. 
+
+
+
+
+
+
+
+
+
+
+ 
+
