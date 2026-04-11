@@ -176,28 +176,8 @@ const FinalReportCompiler = () => {
         }
     };
 
-    const handleGeneratePdf = async () => {
-        const renderEl = pdfRef.current;
-        if (!renderEl || isGeneratingPdf) return;
-        setIsGeneratingPdf(true);
-        try {
-            const jsPDF = (await import('jspdf')).default;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-            await pdf.html(renderEl, {
-                html2canvas: { scale: 0.7, useCORS: true, backgroundColor: '#ffffff' },
-                autoPaging: 'text',
-                margin: [0, 0, 0, 0],
-                fontFaces: [
-                    { family: 'THSarabunPSK', style: 'normal', weight: 'normal', src: [{ url: '/fonts/THSarabun.ttf', format: 'truetype' }] },
-                    { family: 'THSarabunPSK', style: 'normal', weight: '700', src: [{ url: '/fonts/THSarabun Bold.ttf', format: 'truetype' }] }
-                ]
-            });
-            pdf.save(`${finalProjectTitle.replace(/ /g, '_')}.pdf`);
-        } catch (error) {
-            alert("Error generating PDF");
-        } finally {
-            setIsGeneratingPdf(false);
-        }
+    const handleGeneratePdf = () => {
+        window.print();
     };
 
     if (isLoading) return <div className="p-20 text-center flex flex-col items-center gap-4"><Loader2 className="w-12 h-12 animate-spin text-emerald-500" /><p className="text-slate-500 animate-pulse">กำลังรวบรวมข้อมูลทุกบท...</p></div>;
@@ -208,7 +188,7 @@ const FinalReportCompiler = () => {
     return (
         <div className="space-y-6">
             {/* Control Bar */}
-            <div className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 p-4 rounded-3xl flex items-center justify-between shadow-xl">
+            <div className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 p-4 rounded-3xl flex items-center justify-between shadow-xl print:hidden">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-indigo-500 rounded-lg text-white">
                         <FileText className="w-5 h-5" />
@@ -222,16 +202,15 @@ const FinalReportCompiler = () => {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={handleGeneratePdf} 
-                        disabled={isGeneratingPdf} 
-                        className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                        className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
                     >
-                        {isGeneratingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                        ดาวน์โหลด PDF
+                        <Download className="w-4 h-4" />
+                        ดาวน์โหลด PDF (พิมพ์)
                     </button>
                 </div>
             </div>
 
-            <div className="bg-slate-200/50 dark:bg-slate-950/20 py-12 px-4 rounded-[3rem] border-4 border-dashed border-slate-300 dark:border-slate-800 overflow-x-auto min-h-screen">
+            <div className="bg-slate-200/50 dark:bg-slate-950/20 py-12 px-4 rounded-[3rem] border-4 border-dashed border-slate-300 dark:border-slate-800 overflow-x-auto min-h-screen print:hidden">
                 <div className="flex flex-col items-center gap-12 max-w-full">
                     
                     {/* PAGE 1: COVER */}
@@ -339,8 +318,8 @@ const FinalReportCompiler = () => {
                 </div>
             </div>
 
-            {/* Hidden for actual PDF render */}
-            <div className="absolute -left-[9999px] top-0 opacity-0" aria-hidden="true" >
+            {/* Hidden for actual PDF render - Used by browser print */}
+            <div className="printable-report-container" aria-hidden="true" >
                 <div ref={pdfRef}>
                     <PrintableReport 
                         reportStructure={reportData?.reportStructure}
@@ -354,6 +333,7 @@ const FinalReportCompiler = () => {
                         subjectName={subjectName}
                         subjectCode={subjectCode}
                         customCoverText={customCoverText}
+                        userData={userData}
                     />
                 </div>
             </div>

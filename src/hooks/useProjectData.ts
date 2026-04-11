@@ -132,8 +132,27 @@ export const useProjectData = (sectionOverride?: string) => {
         });
 
         const promises = [];
+        const { getDoc, increment } = await import('firebase/firestore');
+
         if (hasMainUpdate) {
-            promises.push(setDoc(doc(db, 'user_projects', compositeId), mainUpdate, { merge: true }));
+            const mainDocRef = doc(db, 'user_projects', compositeId);
+            const mainDocSnap = await getDoc(mainDocRef);
+            
+            // If starting a NEW project (doc doesn't exist)
+            if (!mainDocSnap.exists()) {
+                // Check limit for free users
+                const hasCustomKey = typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key');
+                if (!userData?.isPremium && !hasCustomKey && (userData?.projectCount || 0) >= 3) {
+                    alert("คุณเกินขีดจำกัดจำนวนโครงงานฟรีแล้ว (3 โครงงาน) กรุณาอัปเกรดเป็นพรีเมี่ยมเพื่อทำโครงงานต่อ");
+                    return;
+                }
+                
+                // Increment project count in user profile
+                const userRef = doc(db, 'users', user.uid);
+                promises.push(setDoc(userRef, { projectCount: increment(1) }, { merge: true }));
+            }
+
+            promises.push(setDoc(mainDocRef, mainUpdate, { merge: true }));
         }
         
         if (hasDetailUpdate && currentIsType && ['is1', 'is2', 'is3'].includes(currentIsType)) {

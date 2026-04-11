@@ -87,23 +87,25 @@ export const RoleSelectionPage: React.FC = () => {
                         </div>
                     </button>
 
-                    {/* Admin Selection */}
-                    <button
-                        onClick={() => handleRoleSelect('admin')}
-                        disabled={isSubmitting}
-                        className="group relative flex items-center p-6 rounded-[2rem] border-2 bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-400 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 disabled:opacity-50"
-                    >
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mr-6 bg-slate-50 dark:bg-slate-700 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all">
-                            <AdminIcon className="w-7 h-7" />
-                        </div>
-                        <div className="text-left flex-grow">
-                            <h4 className="font-black text-lg text-slate-800 dark:text-white mb-1">ผู้ดูแลระบบ</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">จัดการระบบภาพรวมและข้อมูลหลังบ้าน</p>
-                        </div>
-                        <div className="text-slate-300 group-hover:text-amber-500 transition-colors">
-                            <ICONS.ChevronRightIcon className="w-6 h-6" />
-                        </div>
-                    </button>
+                    {/* Admin Selection - Only for Founder */}
+                    {user?.email === 'selalad@gmail.com' && (
+                        <button
+                            onClick={() => handleRoleSelect('admin')}
+                            disabled={isSubmitting}
+                            className="group relative flex items-center p-6 rounded-[2rem] border-2 bg-rose-50/50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/30 hover:border-rose-500 dark:hover:border-rose-400 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-300 disabled:opacity-50"
+                        >
+                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mr-6 bg-rose-100 dark:bg-rose-900/30 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all">
+                                <AdminIcon className="w-7 h-7" />
+                            </div>
+                            <div className="text-left flex-grow">
+                                <h4 className="font-black text-lg text-rose-800 dark:text-rose-100 mb-1">Founder Dashboard</h4>
+                                <p className="text-xs text-rose-500/70 dark:text-rose-400/70 font-medium">จัดการระบบภาพรวม สมาชิก และสถานะ Premium</p>
+                            </div>
+                            <div className="text-rose-300 group-hover:text-rose-500 transition-colors">
+                                <ICONS.ChevronRightIcon className="w-6 h-6" />
+                            </div>
+                        </button>
+                    )}
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">

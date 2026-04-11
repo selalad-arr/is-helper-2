@@ -144,7 +144,7 @@ service cloud.firestore {
     // ===============================================================
     function isValidUser() {
       return hasRequiredFields(['uid', 'email']) &&
-              hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'aiQuotaUsed', 'lastQuotaDate', 'role', 'school', 'grade', 'classNo', 'classId', 'onboardingComplete', 'classroomIds']) &&
+              hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'aiQuotaUsed', 'lastQuotaDate', 'role', 'school', 'grade', 'classNo', 'classId', 'onboardingComplete', 'classroomIds', 'isPremium', 'subscriptionExpires', 'aiUsageCount', 'projectCount']) &&
              request.resource.data.uid is string &&
              request.resource.data.email is string &&
              isValidOptionalString('displayName', 0, 100) &&
@@ -158,7 +158,11 @@ service cloud.firestore {
              isValidOptionalString('classNo', 0, 50) &&
              isValidOptionalString('classId', 0, 100) &&
              (!('onboardingComplete' in request.resource.data) || request.resource.data.onboardingComplete is bool) &&
-             (!('classroomIds' in request.resource.data) || request.resource.data.classroomIds is list);
+             (!('classroomIds' in request.resource.data) || request.resource.data.classroomIds is list) &&
+             (!('isPremium' in request.resource.data) || request.resource.data.isPremium is bool) &&
+             (!('subscriptionExpires' in request.resource.data) || request.resource.data.subscriptionExpires is timestamp) &&
+             (!('aiUsageCount' in request.resource.data) || request.resource.data.aiUsageCount is number) &&
+             (!('projectCount' in request.resource.data) || request.resource.data.projectCount is number);
     }
 
     function isValidClassroom() {

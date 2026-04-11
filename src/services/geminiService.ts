@@ -39,32 +39,36 @@ async function hashPrompt(prompt: string): Promise<string> {
     return hashHex;
 }
 
-async function checkAndConsumeQuota(): Promise<boolean> {
+async function getModelAndCheckQuota(): Promise<{ modelId: string }> {
     const customApiKey = localStorage.getItem('custom_gemini_api_key');
-    if (customApiKey) return true; // Unlimited if using own key
+    if (customApiKey) return { modelId: 'gemini-3-flash-preview' }; // Use best if custom key
     
-    const useFreeQuota = localStorage.getItem('use_free_quota') === 'true';
-    if (!useFreeQuota) {
-        if (typeof window !== 'undefined') window.dispatchEvent(new Event('quota_exceeded'));
-        throw new Error("QUOTA_EXCEEDED");
-    }
-
     const user = auth.currentUser;
     if (!user) {
-        if (typeof window !== 'undefined') window.dispatchEvent(new Event('quota_exceeded'));
-        throw new Error("QUOTA_EXCEEDED");
+        throw new Error("AUTH_REQUIRED");
     }
 
     const docRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+        throw new Error("USER_NOT_FOUND");
+    }
+
+    const data = docSnap.data();
+    const isPremium = data.isPremium === true;
     const today = new Date().toISOString().split('T')[0];
 
+    if (isPremium) {
+        // Premium users: use Gemini 3 Flash
+        // Optional: Add a fair usage limit here (e.g. 100/day)
+        return { modelId: 'gemini-3-flash-preview' };
+    }
+
+    // Free users: use Gemini 1.5 Flash
     let currentUsed = 0;
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.lastQuotaDate === today) {
-            currentUsed = data.aiQuotaUsed || 0;
-        }
+    if (data.lastQuotaDate === today) {
+        currentUsed = data.aiQuotaUsed || 0;
     }
 
     if (currentUsed >= 3) {
@@ -72,7 +76,7 @@ async function checkAndConsumeQuota(): Promise<boolean> {
         throw new Error("QUOTA_EXCEEDED");
     }
 
-    // Consume quota
+    // Consume quota for free users
     await setDoc(docRef, { 
         aiQuotaUsed: currentUsed + 1, 
         lastQuotaDate: today,
@@ -80,12 +84,12 @@ async function checkAndConsumeQuota(): Promise<boolean> {
         email: user.email || ''
     }, { merge: true });
     
-    return true;
+    return { modelId: 'gemini-1.5-flash' };
 }
 
 async function executeWithCacheAndQuota(
     promptStringForHash: string, 
-    apiCall: () => Promise<string>
+    apiCall: (modelId: string) => Promise<string>
 ): Promise<string> {
     const promptHash = await hashPrompt(promptStringForHash);
     const cacheRef = doc(db, 'ai_cache', promptHash);
@@ -99,9 +103,9 @@ async function executeWithCacheAndQuota(
         console.error("Cache read error", e);
     }
 
-    await checkAndConsumeQuota();
+    const { modelId } = await getModelAndCheckQuota();
 
-    const responseText = await apiCall();
+    const responseText = await apiCall(modelId);
 
     try {
         if (auth.currentUser) {
@@ -165,24 +169,16 @@ export const handleGeminiError = (error: unknown): string => {
 };
 
 
-export const createChatSession = (systemInstruction: string, history?: ChatMessage[]): Chat => {
+export const createChatSession = async (systemInstruction: string, history?: ChatMessage[]): Promise<Chat> => {
+  const { modelId } = await getModelAndCheckQuota();
   const ai = getAiClient();
   const chat = ai.chats.create({
-    model: 'gemini-3-flash-preview',
+    model: modelId,
     config: {
       systemInstruction: systemInstruction,
     },
     history: history,
   });
-  
-  const originalSendMessageStream = chat.sendMessageStream.bind(chat);
-  chat.sendMessageStream = async function* (request: any) {
-      await checkAndConsumeQuota();
-      const stream = await originalSendMessageStream(request);
-      for await (const chunk of stream) {
-          yield chunk;
-      }
-  } as any;
   
   return chat;
 };
@@ -191,10 +187,10 @@ export const generateFeedback = async (question: string, answer: string, context
   try {
     const prompt = getFeedbackPrompt(context, question, answer, projectName);
 
-    return await executeWithCacheAndQuota(prompt, async () => {
+    return await executeWithCacheAndQuota(prompt, async (modelId) => {
         const ai = getAiClient();
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: modelId,
             contents: prompt,
         });
         
@@ -218,10 +214,10 @@ export const generateFeedback = async (question: string, answer: string, context
  */
 export const generateSimpleContent = async (prompt: string): Promise<string> => {
   try {
-    return await executeWithCacheAndQuota(prompt, async () => {
+    return await executeWithCacheAndQuota(prompt, async (modelId) => {
         const ai = getAiClient();
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: modelId,
             contents: prompt,
         });
         
@@ -284,10 +280,10 @@ export const analyzeSource = async (source: ManualSource | ImageSource): Promise
       promptStringForHash = basePrompt + base64Data.substring(0, 100); // Hash part of image data
     }
   
-    return await executeWithCacheAndQuota(promptStringForHash, async () => {
+    return await executeWithCacheAndQuota(promptStringForHash, async (modelId) => {
         const ai = getAiClient();
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: modelId,
             contents: contents,
         });
         
@@ -367,10 +363,10 @@ export const generatePresentationContent = async (
 "${conclusion}"
         `;
 
-        const responseText = await executeWithCacheAndQuota("presentation:" + contents, async () => {
+        const responseText = await executeWithCacheAndQuota("presentation:" + contents, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents: contents,
                 config: {
                     systemInstruction,
@@ -412,10 +408,10 @@ export const generateProjectTitleSuggestions = async (
 
         const contents = `หัวข้อที่นักเรียนสนใจ: "${studentInterest}"`;
 
-        const responseText = await executeWithCacheAndQuota("title:" + contents, async () => {
+        const responseText = await executeWithCacheAndQuota("title:" + contents, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents: contents,
                 config: {
                     systemInstruction,
@@ -537,10 +533,10 @@ export const generateChapterGuideline = async (
 
         const contents = `ชื่อโครงงาน: "${projectTitle}"\nข้อมูลแกนหลัก: "${coreConcept}"\nข้อมูลการสืบค้น: "${researchData}"\n\nสร้างคำแนะนำสำหรับก้าวที่ ${stepNumber || chapterNumber} (บทที่ ${chapterNumber})`;
 
-        const responseText = await executeWithCacheAndQuota(`chapter_guideline:${stepNumber || chapterNumber}:${contents}`, async () => {
+        const responseText = await executeWithCacheAndQuota(`chapter_guideline:${stepNumber || chapterNumber}:${contents}`, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents,
                 config: {
                     systemInstruction,
@@ -577,10 +573,10 @@ export const generateAARReport = async (
 
         const contents = `ชื่อโครงการ: "${projectTitle}"\nสิ่งที่ทำได้ดี: "${wentWell}"\nปัญหาและอุปสรรค: "${problems}"\nสิ่งที่อยากปรับปรุง/ข้อเสนอแนะ: "${improvements}"\n\nช่วยเขียนรายงานถอดบทเรียน (AAR) ให้หน่อย`;
 
-        const responseText = await executeWithCacheAndQuota(`aar_report:${projectTitle}:${wentWell}:${problems}:${improvements}`, async () => {
+        const responseText = await executeWithCacheAndQuota(`aar_report:${projectTitle}:${wentWell}:${problems}:${improvements}`, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents: contents,
                 config: {
                     systemInstruction: systemInstruction,
@@ -637,10 +633,10 @@ export const generateReportStructure = async (
 
         const contents = `ชื่อโครงงาน: "${projectTitle}"`;
 
-        const responseText = await executeWithCacheAndQuota("structure:" + contents, async () => {
+        const responseText = await executeWithCacheAndQuota("structure:" + contents, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents: contents,
                 config: {
                     systemInstruction,
@@ -722,10 +718,10 @@ export const generateSectionFeedback = async (
              promptStringForHash = contents;
         }
 
-        return await executeWithCacheAndQuota(promptStringForHash, async () => {
+        return await executeWithCacheAndQuota(promptStringForHash, async (modelId) => {
             const ai = getAiClient();
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: modelId,
                 contents: contents,
             });
             

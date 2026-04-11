@@ -6,9 +6,11 @@ import {
   AuthProvider as FirebaseAuthProvider 
 } from 'firebase/auth';
 
+import { UserProfile } from '../types';
+
 interface AuthContextType {
   user: User | null;
-  userData: any | null;
+  userData: UserProfile | null;
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
   login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
@@ -18,6 +20,7 @@ interface AuthContextType {
   selectClassroom: (classId: string | null) => Promise<void>;
   selectRole: (role: 'student' | 'teacher' | 'admin') => Promise<void>;
   switchRole: () => Promise<void>;
+  checkAccess: (type: 'ai' | 'project') => boolean;
   authError: string | null;
   clearError: () => void;
 }
@@ -35,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   selectClassroom: async () => {},
   selectRole: async () => {},
   switchRole: async () => {},
+  checkAccess: () => false,
   authError: null,
   clearError: () => {},
 });
@@ -84,27 +88,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Listen to user document for real-time updates
           if (unsubscribeDoc) unsubscribeDoc();
           
-          unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+            unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
             if (isLoggingInRef.current) {
               return; // Ignore snapshots during active manual login to prevent role revert
             }
             if (docSnap.exists()) {
               const data = docSnap.data();
+              // Force admin role for the founder email
+              const finalRole = currentUser.email === 'selalad@gmail.com' ? 'admin' : (data.role || null);
+              
               setUserData(data);
-              setUserRole(data.role || null);
+              setUserRole(finalRole);
             } else {
-              // Create default doc if missing (e.g. session restored but no DB record exists)
+              // Create default doc if missing
+              const finalRole = currentUser.email === 'selalad@gmail.com' ? 'admin' : null;
               const defaultData = {
                 uid: currentUser.uid,
                 email: currentUser.email || '',
                 displayName: currentUser.displayName || '',
                 photoURL: currentUser.photoURL || '',
                 createdAt: serverTimestamp(),
-                role: null,
-                onboardingComplete: false
+                role: finalRole,
+                onboardingComplete: false,
+                isPremium: false,
+                aiUsageCount: 0,
+                projectCount: 0,
+                subscriptionExpires: null
               };
               setUserData(defaultData);
-              setUserRole(null);
+              setUserRole(finalRole);
               setDoc(userDocRef, defaultData, { merge: true });
             }
             setLoading(false);
@@ -147,6 +159,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const joinClassroom = async (classCode: string) => {
     if (!user || userRole !== 'student') throw new Error('Only students can join classrooms');
+    const hasCustomKey = typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key');
+    if (!userData?.isPremium && !hasCustomKey && (userData?.projectCount || 0) >= 3) {
+      throw new Error('LIMIT_EXCEEDED');
+    }
     
     // Find classroom by code
     const classroomsRef = collection(db, 'classrooms');
@@ -160,12 +176,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const classroomDoc = querySnapshot.docs[0];
     const classId = classroomDoc.id;
+
+    // Check if already in this classroom
+    if (userData?.classroomIds?.includes(classId)) {
+        throw new Error('คุณอยู่ในห้องเรียนนี้อยู่แล้ว');
+    }
     
-    // Update user's classId and add to history
+    // Update user's classId, add to history, and increment project count
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { 
       classId,
-      classroomIds: arrayUnion(classId)
+      classroomIds: arrayUnion(classId),
+      projectCount: increment(1)
     });
     
     // Increment student count in classroom
@@ -285,6 +307,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const checkAccess = (type: 'ai' | 'project'): boolean => {
+    if (!userData) return false;
+    
+    const hasCustomKey = typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key');
+    if (userData.isPremium || hasCustomKey) return true;
+    
+    if (type === 'project') {
+      return (userData.projectCount || 0) < 3;
+    }
+    
+    // AI limits are handled in geminiService.ts (3/day for free)
+    return true;
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -298,6 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       selectClassroom,
       selectRole,
       switchRole,
+      checkAccess,
       authError,
       clearError
     }}>

@@ -71,7 +71,11 @@ export const StudentClassroomGate: React.FC = () => {
             await joinClassroom(classCode.toUpperCase());
             navigate('/student/dashboard');
         } catch (err: any) {
-            setError(err.message || 'รหัสไม่ถูกต้อง');
+            if (err.message === 'LIMIT_EXCEEDED') {
+                setError('คุณใช้งานโครงงานครบจำนวนที่จำกัดแล้ว (3 โครงงาน) กรุณาอัปเกรดเป็นพรีเมี่ยม หรือใช้ API Key ของตัวเองเพื่อปลดล็อคขีดจำกัด');
+            } else {
+                setError(err.message || 'รหัสไม่ถูกต้อง');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -142,6 +146,43 @@ export const StudentClassroomGate: React.FC = () => {
                                     </div>
                                 </button>
                             </div>
+                            
+                            {(() => {
+                                const hasCustomKey = typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key');
+                                if (userData?.isPremium || hasCustomKey) return null;
+                                
+                                return (
+                                    <motion.div 
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.5 }}
+                                        className="mt-12 inline-block px-6 py-3 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700"
+                                    >
+                                        <div className="flex items-center gap-4 text-sm font-bold text-slate-500 dark:text-slate-400">
+                                            <span>จำนวนโครงงานที่ใช้งาน (ฟรี):</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-32 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full transition-all ${((userData?.projectCount || 0) >= 3) ? 'bg-rose-500' : 'bg-sky-500'}`}
+                                                        style={{ width: `${Math.min(100, ((userData?.projectCount || 0) / 3) * 100)}%` }}
+                                                    />
+                                                </div>
+                                                <span className={(userData?.projectCount || 0) >= 3 ? 'text-rose-500' : ''}>
+                                                    {userData?.projectCount || 0} / 3
+                                                </span>
+                                            </div>
+                                            {(userData?.projectCount || 0) >= 3 && (
+                                                <button 
+                                                    onClick={() => navigate('/pricing')}
+                                                    className="ml-2 text-sky-500 hover:underline bg-transparent border-none p-0 cursor-pointer"
+                                                >
+                                                    อัปเกรดเพื่อปลดล็อค ✨
+                                                </button>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })()}
                         </motion.div>
                     ) : (
                         <motion.div

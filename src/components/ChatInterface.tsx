@@ -36,10 +36,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
     useEffect(() => {
         if (isDataLoading) return;
 
-        const initChat = () => {
+        const initChat = async () => {
             if (messages.length > 1) {
                 try {
-                    const chatSession = createChatSession(systemPrompt, messages.slice(0, -1));
+                    const chatSession = await createChatSession(systemPrompt, messages.slice(0, -1));
                     setChat(chatSession);
                 } catch (e) {
                     console.error("Failed to resume chat:", e);
@@ -50,7 +50,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
 
             setIsLoading(true);
             try {
-                const chatSession = createChatSession(systemPrompt);
+                const chatSession = await createChatSession(systemPrompt);
                 setChat(chatSession);
             } catch (error) {
                 console.error("Failed to initialize chat session:", error);

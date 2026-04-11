@@ -92,7 +92,11 @@ export const HomePage = () => {
             setShowJoinForm(false);
             setClassCode('');
         } catch (err: any) {
-            setJoinError(err.message);
+            if (err.message === 'LIMIT_EXCEEDED') {
+                setJoinError('คุณใช้งานโครงงานครบจำนวนที่จำกัดแล้ว (3 โครงงาน) กรุณาอัปเกรดเป็นพรีเมี่ยมเพื่อเพิ่มห้องเรียนได้ไม่จำกัด');
+            } else {
+                setJoinError(err.message);
+            }
         } finally {
             setIsJoining(false);
         }

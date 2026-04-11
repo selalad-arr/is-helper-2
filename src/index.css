@@ -105,3 +105,51 @@
   0% { opacity: 0.3; transform: scale(1); }
   100% { opacity: 0.7; transform: scale(1.02); }
 }
+
+/* Print Styles */
+.printable-report-container {
+  display: none;
+}
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Show only the printable report and its content */
+  .printable-report-container,
+  .printable-report-container * {
+    visibility: visible;
+    display: block !important;
+  }
+  
+  /* Position the report at the top left of the print page */
+  .printable-report-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure page breaks work correctly */
+  .printable-page {
+    page-break-after: always !important;
+    break-after: page !important;
+    margin: 0 !important;
+    padding: 1.5in 1in 1in 1.5in !important; /* Standard Thai academic margin */
+    min-height: 297mm !important;
+    width: 210mm !important;
+    background: white !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Reset some common styles for printing */
+  html, body {
+    background: white !important;
+    height: auto !important;
+  }
+}

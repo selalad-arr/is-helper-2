@@ -14,6 +14,7 @@ const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard').then(m =>
 const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel })));
 const RoleSelectionPage = lazy(() => import('./pages/RoleSelectionPage').then(m => ({ default: m.RoleSelectionPage })));
 const StudentClassroomGate = lazy(() => import('./pages/StudentClassroomGate').then(m => ({ default: m.StudentClassroomGate })));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
 import { StudentOnboarding } from './components/StudentOnboarding';
 import FloatingChatWidget from './components/FloatingChatWidget';
 import { useAuth } from './contexts/AuthContext';
@@ -80,6 +81,7 @@ const MainRoutes = () => {
                     
                     {/* Global Routes */}
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/pricing" element={<PricingPage />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </AnimatePresence>

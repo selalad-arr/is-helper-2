@@ -68,12 +68,15 @@ const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, con
 - ช่วยนักเรียนวางแผนขั้นตอนต่อไปอย่างเป็นรูปธรรม
 - ใช้ภาษาที่เป็นมิตร ให้กำลังใจ และเข้าใจง่าย`;
 
-        try {
-            const chatSession = createChatSession(chatSystemPrompt, chatHistory.slice(0, -1));
-            setFollowUpChat(chatSession);
-        } catch (e) {
-            console.error("Failed to resume follow-up chat", e);
-        }
+        const initChat = async () => {
+          try {
+              const chatSession = await createChatSession(chatSystemPrompt, chatHistory.slice(0, -1));
+              setFollowUpChat(chatSession);
+          } catch (e) {
+              console.error("Failed to resume follow-up chat", e);
+          }
+        };
+        initChat();
     }
   }, [feedback]);
   const [chatInput, setChatInput] = useState('');
@@ -124,7 +127,7 @@ const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, con
 - สนทนาต่อไปเรื่อยๆ เพื่อคลายข้อสงสัยและช่วยให้นักเรียนเห็นภาพการทำงานขั้นต่อไปได้ชัดเจนที่สุด`;
 
       try {
-          const chatSession = createChatSession(chatSystemPrompt);
+          const chatSession = await createChatSession(chatSystemPrompt);
           setFollowUpChat(chatSession);
           setChatHistory([{ role: 'model', parts: [{ text: "มีคำถามเพิ่มเติมเกี่ยวกับคำแนะนำ หรืออยากให้ช่วยวางแผนขั้นต่อไป ถามได้เลยนะครับ/คะ" }] }]);
       } catch (error) {

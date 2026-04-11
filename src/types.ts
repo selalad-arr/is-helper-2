@@ -32,3 +32,19 @@ export interface ProjectCollaborator {
   assignedSections: string[]; // e.g., ["Chapter 1", "Abstract"]
   status: 'pending' | 'active' | 'completed';
 }
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string;
+  role: 'student' | 'teacher' | 'admin' | null;
+  onboardingComplete: boolean;
+  isPremium?: boolean;
+  subscriptionExpires?: any; 
+  aiUsageCount?: number;
+  projectCount?: number;
+  classId?: string;
+  classroomIds?: string[];
+  createdAt: any;
+}

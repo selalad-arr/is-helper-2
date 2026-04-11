@@ -2,10 +2,10 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApiSettings } from '../../contexts/ApiSettingsContext';
-import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon, AcademicCapIcon, CheckCircleIcon } from '../../ui/icons';
+import { BookOpenIcon, Cog6ToothIcon, CheckIcon, HomeIcon, ShareIcon, AcademicCapIcon, CheckCircleIcon, SparklesIcon } from '../../ui/icons';
 
 export const Header = () => {
-    const { user, userRole, login, logout, switchRole } = useAuth();
+    const { user, userData, userRole, login, logout, switchRole } = useAuth();
     const { useFreeQuota, quotaUsed, customApiKey } = useApiSettings();
     const navigate = useNavigate();
 
@@ -113,6 +113,24 @@ export const Header = () => {
                                 <ShareIcon className="w-4 h-4 rotate-180 text-emerald-500" />
                                 <span>สลับสถานะ</span>
                             </button>
+
+                            {!userData?.isPremium ? (
+                                <Link 
+                                    to="/pricing" 
+                                    className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-xl transition-all font-black text-sm shadow-md shadow-orange-500/20 hover:scale-105 active:scale-95 animate-pulse"
+                                >
+                                    <SparklesIcon className="w-4 h-4" />
+                                    Upgrade
+                                </Link>
+                            ) : (
+                                <Link 
+                                    to="/pricing"
+                                    className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-indigo-500 text-white rounded-xl font-black text-sm shadow-md shadow-sky-500/20"
+                                >
+                                    <SparklesIcon className="w-4 h-4" />
+                                    Premium
+                                </Link>
+                            )}
                         </div>
                     )}
                     <button 

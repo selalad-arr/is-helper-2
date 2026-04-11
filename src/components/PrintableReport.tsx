@@ -2,8 +2,13 @@ import React from 'react';
 
 const PagePreview: React.FC<React.PropsWithChildren<{ className?: string, style?: React.CSSProperties }>> = ({ children, className, style }) => (
     <div 
-        className={`bg-white text-black ${className || ''}`}
-        style={{ ...style, pageBreakAfter: 'always' }}
+        className="printable-page"
+        style={{ 
+            backgroundColor: '#ffffff', 
+            color: '#000000', 
+            ...style, 
+            pageBreakAfter: 'always' 
+        }}
     >
         {children}
     </div>
@@ -32,13 +37,14 @@ const PrintableReport: React.FC<any> = ({
     schoolName = '', 
     semester = '',
     subjectName = '', 
-    subjectCode = ''
+    subjectCode = '',
+    userData = null
 }) => {
     return (
-        <div style={{ width: '827px' }}>
+        <div style={{ width: '827px', backgroundColor: '#ffffff', color: '#000000' }}>
             {/* Page 1: Cover */}
             <PagePreview>
-                <div className="flex flex-col justify-between text-center" style={{minHeight: '1170px', padding: '1.5in 1in 1in 1.5in'}}>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textAlign: 'center', minHeight: '1170px', padding: '1.5in 1in 1in 1.5in' }}>
                     <div style={{paddingTop: '60pt'}}>
                         <p style={pdfStyles.coverTitle}>{reportStructure?.title || '...'}</p>
                     </div>
@@ -58,46 +64,46 @@ const PrintableReport: React.FC<any> = ({
             </PagePreview>
 
             {/* Page 2: Abstract */}
-            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in' }}>
+            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in', minHeight: '1170px' }}>
                 <h1 style={pdfStyles.chapterTitle}>บทคัดย่อ</h1>
                 <p style={pdfStyles.bodyTextJustify} dangerouslySetInnerHTML={{ __html: projectAbstract.replace(/\n/g, '<br />') || '[ยังไม่ได้กรอกบทคัดย่อ]' }}></p>
             </PagePreview>
             
             {/* Page 3: Acknowledgements */}
-            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in' }}>
+            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in', minHeight: '1170px' }}>
                 <h1 style={pdfStyles.chapterTitle}>กิตติกรรมประกาศ</h1>
                 <p style={pdfStyles.bodyTextJustify} dangerouslySetInnerHTML={{ __html: acknowledgements.replace(/\n/g, '<br />') || '[ยังไม่ได้กรอกกิตติกรรมประกาศ]' }}></p>
             </PagePreview>
             
             {/* Page 4: Table of Contents */}
-            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in' }}>
+            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in', minHeight: '1170px' }}>
                 <h1 style={pdfStyles.chapterTitle}>สารบัญ</h1>
-                <div style={pdfStyles.bodyText} className="space-y-3">
+                <div style={{ ...pdfStyles.bodyText, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <div style={pdfStyles.tocEntry}><span>บทคัดย่อ</span><span style={pdfStyles.tocDots}></span><span>ข</span></div>
                     <div style={pdfStyles.tocEntry}><span>กิตติกรรมประกาศ</span><span style={pdfStyles.tocDots}></span><span>ค</span></div>
                     {reportStructure?.chapters.map((chapter: any) => (
-                        <div key={`toc-ch-${chapter.chapter_number}`} className="mt-4">
-                            <div style={{...pdfStyles.tocEntry, ...pdfStyles.mainHeading, fontSize: '16pt'}}><span className="pr-2">บทที่ {chapter.chapter_number} {chapter.title}</span><span style={pdfStyles.tocDots}></span><span>...</span></div>
-                            <div className="ml-8 mt-2 space-y-2 font-normal">
+                        <div key={`toc-ch-${chapter.chapter_number}`} style={{ marginTop: '1rem' }}>
+                            <div style={{...pdfStyles.tocEntry, ...pdfStyles.mainHeading, fontSize: '16pt'}}><span style={{ paddingRight: '0.5rem' }}>บทที่ {chapter.chapter_number} {chapter.title}</span><span style={pdfStyles.tocDots}></span><span>...</span></div>
+                            <div style={{ marginLeft: '2rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontWeight: 'normal' }}>
                                 {chapter.sections.map((section: any, i: number) => (
                                     <div key={`toc-sec-${i}`} style={pdfStyles.tocEntry}><span>{chapter.chapter_number}.{i+1} {section.header}</span><span style={pdfStyles.tocDots}></span><span>...</span></div>
                                 ))}
                             </div>
                         </div>
                     ))}
-                    <div style={{...pdfStyles.tocEntry, ...pdfStyles.mainHeading, fontSize: '16pt'}} className="mt-4"><span>เอกสารอ้างอิง</span><span style={pdfStyles.tocDots}></span><span>...</span></div>
+                    <div style={{...pdfStyles.tocEntry, ...pdfStyles.mainHeading, fontSize: '16pt', marginTop: '1rem'}}><span>เอกสารอ้างอิง</span><span style={pdfStyles.tocDots}></span><span>...</span></div>
                 </div>
             </PagePreview>
 
             {/* Content Pages */}
             {reportStructure?.chapters.map((chapter: any) => (
-                <PagePreview key={`ch-page-${chapter.chapter_number}`} style={{ padding: '1.5in 1in 1in 1.5in' }}>
+                <PagePreview key={`ch-page-${chapter.chapter_number}`} style={{ padding: '1.5in 1in 1in 1.5in', minHeight: '1170px' }}>
                     <h1 style={pdfStyles.chapterTitle}>บทที่ {chapter.chapter_number}<br/>{chapter.title}</h1>
                     {chapter.sections.map((section: any, i: number) => {
                         const key = `${chapter.chapter_number}_${i}`;
                         const content = studentInputs[key] ? studentInputs[key].replace(/\n/g, '<br />') : `[ยังไม่มีเนื้อหาสำหรับหัวข้อ "${section.header}"]`;
                         return (
-                        <div key={`content-${key}`} className="mb-6">
+                        <div key={`content-${key}`} style={{ marginBottom: '1.5rem' }}>
                             <h2 style={pdfStyles.mainHeading}>{chapter.chapter_number}.{i + 1} {section.header}</h2>
                             <p style={pdfStyles.bodyTextJustify} dangerouslySetInnerHTML={{ __html: content }}></p>
                         </div>
@@ -106,14 +112,16 @@ const PrintableReport: React.FC<any> = ({
             ))}
 
             {/* References Page */}
-            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in' }}>
+            <PagePreview style={{ padding: '1.5in 1in 1in 1.5in', minHeight: '1170px' }}>
                 <h1 style={pdfStyles.chapterTitle}>เอกสารอ้างอิง</h1>
                 <p style={pdfStyles.bodyText} dangerouslySetInnerHTML={{ __html: references.replace(/\n/g, '<br />') || '[ยังไม่ได้กรอกเอกสารอ้างอิง]' }}></p>
-                 <div style={{ textAlign: 'center', paddingTop: '50pt' }}>
-                     <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'THSarabunPSK, sans-serif' }}>
-                        สร้างมาจาก IS Helper
-                    </p>
-                </div>
+                 {!(userData?.isPremium || (typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key'))) && (
+                     <div style={{ textAlign: 'center', paddingTop: '50pt' }}>
+                         <p style={{ color: '#cccccc', fontSize: '9pt', fontFamily: 'THSarabunPSK, sans-serif' }}>
+                            สร้างมาจาก IS Helper
+                        </p>
+                    </div>
+                 )}
             </PagePreview>
         </div>
     );
