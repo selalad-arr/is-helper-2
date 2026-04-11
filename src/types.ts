@@ -25,3 +25,10 @@ export interface TaskResponse {
   feedback?: string;
   updatedAt: any;
 }
+
+export interface ProjectCollaborator {
+  name: string;
+  role: string;
+  assignedSections: string[]; // e.g., ["Chapter 1", "Abstract"]
+  status: 'pending' | 'active' | 'completed';
+}

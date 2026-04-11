@@ -1,5 +1,6 @@
 import React from 'react';
 import ReportMetadataForm from '../../components/ReportMetadataForm';
+import JobAllocation from '../../components/JobAllocation';
 import { UserCircle } from 'lucide-react';
 
 const ProjectTopic1 = () => {
@@ -18,6 +19,8 @@ const ProjectTopic1 = () => {
                 </p>
                 <ReportMetadataForm mode="early" />
             </div>
+
+            <JobAllocation />
         </div>
     );
 };
