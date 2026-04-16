@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateProjectTitleSuggestions } from '../services/geminiService';
+import { generateProjectTitleSuggestions } from '../services/gemini';
 import { trackEvent } from '../services/analyticsService';
 import { Sparkles, ArrowRight, Loader2 } from 'lucide-react';
 

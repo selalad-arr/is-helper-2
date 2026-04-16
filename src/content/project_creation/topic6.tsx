@@ -5,7 +5,7 @@ import { Target, Lightbulb } from 'lucide-react';
 const ProjectTopic6 = () => {
     return (
         <div className="space-y-8">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 6: เป้าหมายและสมมติฐาน 🎯</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 5: เป้าหมายและสมมติฐาน 🎯</h3>
             
             <div className="bg-sky-50 dark:bg-sky-900/20 p-6 rounded-2xl border border-sky-100 dark:border-sky-800/50">
                 <h4 className="font-semibold text-sky-800 dark:text-sky-300 mb-2 flex items-center gap-2">
@@ -29,7 +29,7 @@ const ProjectTopic6 = () => {
             </div>
 
             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-center">
-                <p className="text-slate-500 text-sm">ส่วนนี้มักจะอยู่ในบทที่ 1 ที่เราเพิ่งเขียนไป <br/> ตรวจสอบความถูกต้องอีกครั้งก่อนไปก้าวที่ 7 นะครับ!</p>
+                <p className="text-slate-500 text-sm">ส่วนนี้มักจะอยู่ในบทที่ 1 ที่เราเพิ่งเขียนไป <br/> ตรวจสอบความถูกต้องอีกครั้งก่อนไปก้าวที่ 6 นะครับ!</p>
             </div>
         </div>
     );

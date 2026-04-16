@@ -8,7 +8,7 @@ const ProjectTopic17 = () => {
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 rounded-3xl text-white shadow-lg shadow-emerald-200 dark:shadow-none mb-8">
                 <h3 className="text-3xl font-bold mb-3 flex items-center gap-3">
                     <BookMarked className="w-8 h-8" />
-                    <span>ก้าวที่ 17: ตรวจสอบและดาวน์โหลด 📚</span>
+                    <span>ก้าวที่ 16: ตรวจสอบและดาวน์โหลด 📚</span>
                 </h3>
                 <p className="text-emerald-50 opacity-90 text-lg leading-relaxed">
                     ภารกิจเสร็จสิ้น! ตอนนี้รายงานฉบับสมบูรณ์พร้อมแจกจ่ายแล้ว ตรวจสอบความถูกต้องรอบสุดท้ายแล้วดาวน์โหลดได้เลยครับ! ✨

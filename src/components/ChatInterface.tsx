@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
 import type { ChatMessage } from '../types';
-import { createChatSession, handleGeminiError } from '../services/geminiService';
-import { SparklesIcon, UserCircleIcon, PaperAirplaneIcon } from '../ui/icons';
+import { createChatSession, handleGeminiError } from '../services/gemini';
+import { SparklesIcon, UserCircleIcon, PaperAirplaneIcon, TrashIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
 import { useFirestoreData } from '../hooks/useFirestore';
+
+import { useAuth } from '../contexts/AuthContext/AuthProvider';
 
 interface ChatInterfaceProps {
     systemPrompt: string;
@@ -16,18 +18,36 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMessage, containerClassName = "h-[70vh] max-h-[700px]", chatContext, suggestedPrompts }) => {
+    const { userData } = useAuth();
+    const isPremium = userData?.isPremium || false;
+    
     const [chat, setChat] = useState<Chat | null>(null);
+    const [messages, setMessagesState] = useState<ChatMessage[]>([]);
     
     const { data: chatData, updateData: updateChatData, loading: isDataLoading } = useFirestoreData('user_chats', chatContext, {
         messages: JSON.stringify([{ role: 'model', parts: [{ text: welcomeMessage }] }])
     });
 
-    const messages: ChatMessage[] = JSON.parse(chatData.messages || '[]');
+    // Update local messages when Firestore data changes
+    useEffect(() => {
+        if (!isDataLoading && chatData?.messages) {
+            try {
+                const parsed = JSON.parse(chatData.messages);
+                setMessagesState(parsed);
+            } catch (e) {
+                console.error("Failed to parse messages from Firestore:", e);
+            }
+        }
+    }, [chatData.messages, isDataLoading]);
 
-    const setMessages = (newMessages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
-        const updatedMessages = typeof newMessages === 'function' ? newMessages(messages) : newMessages;
-        updateChatData({ messages: JSON.stringify(updatedMessages) });
-    };
+    const setMessages = useCallback((newMessages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+        setMessagesState(prev => {
+            const updatedMessages = typeof newMessages === 'function' ? newMessages(prev) : newMessages;
+            // Sync to Firestore in a "fire and forget" way
+            updateChatData({ messages: JSON.stringify(updatedMessages) });
+            return updatedMessages;
+        });
+    }, [updateChatData]);
 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -37,9 +57,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
         if (isDataLoading) return;
 
         const initChat = async () => {
-            if (messages.length > 1) {
+            const currentMessages = JSON.parse(chatData.messages || '[]');
+            if (currentMessages.length > 1) {
                 try {
-                    const chatSession = await createChatSession(systemPrompt, messages.slice(0, -1));
+                    const chatSession = await createChatSession(systemPrompt, currentMessages.slice(0, -1), isPremium);
                     setChat(chatSession);
                 } catch (e) {
                     console.error("Failed to resume chat:", e);
@@ -50,7 +71,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
 
             setIsLoading(true);
             try {
-                const chatSession = await createChatSession(systemPrompt);
+                const chatSession = await createChatSession(systemPrompt, [], isPremium);
                 setChat(chatSession);
             } catch (error) {
                 console.error("Failed to initialize chat session:", error);
@@ -60,7 +81,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
             }
         };
         initChat();
-    }, [systemPrompt, welcomeMessage, isDataLoading]);
+    }, [systemPrompt, welcomeMessage, isDataLoading, chatData.messages === undefined, isPremium]); // Use a stable key for initial load
 
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -114,11 +135,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
         } finally {
             setIsLoading(false);
         }
-    }, [input, isLoading, chat, chatContext]);
+    }, [input, isLoading, chat, chatContext, setMessages]);
     
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             handleSendMessage();
+        }
+    };
+
+    const handleClearChat = async () => {
+        if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประวัติการสนทนาทั้งหมด?')) return;
+        
+        setIsLoading(true);
+        setMessages([{ role: 'model', parts: [{ text: welcomeMessage }] }]);
+        
+        try {
+            const chatSession = await createChatSession(systemPrompt, [], isPremium);
+            setChat(chatSession);
+        } catch (error) {
+            console.error("Failed to initialize chat session:", error);
+            setMessages([{ role: 'model', parts: [{ text: "ขออภัย, ไม่สามารถเริ่มการสนทนาใหม่ได้ในขณะนี้" }] }]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -159,27 +197,40 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ systemPrompt, welcomeMess
                 </AnimatePresence>
             </div>
             <div className="p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 backdrop-blur-sm">
-                {suggestedPrompts && suggestedPrompts.length > 0 && messages.length <= 2 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
-                        {suggestedPrompts.map((prompt, idx) => (
+                {(suggestedPrompts && suggestedPrompts.length > 0 && messages.length <= 2) || messages.length > 1 ? (
+                    <div className="flex justify-between items-end mb-3 gap-2 w-full">
+                        <div className="flex flex-wrap gap-2 flex-1">
+                            {suggestedPrompts && suggestedPrompts.length > 0 && messages.length <= 2 && suggestedPrompts.map((prompt, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        setInput(prompt);
+                                        // We use a small timeout to ensure setInput has finished before handleSendMessage is called if we were to trigger it automatically
+                                        // But for better UX, let's just set the input and let the user click send, or trigger it immediately:
+                                        setTimeout(() => {
+                                            const sendBtn = document.getElementById('chat-send-btn');
+                                            sendBtn?.click();
+                                        }, 10);
+                                    }}
+                                    className="text-xs px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 transition-colors shadow-sm"
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
+                        {messages.length > 1 && (
                             <button
-                                key={idx}
-                                onClick={() => {
-                                    setInput(prompt);
-                                    // We use a small timeout to ensure setInput has finished before handleSendMessage is called if we were to trigger it automatically
-                                    // But for better UX, let's just set the input and let the user click send, or trigger it immediately:
-                                    setTimeout(() => {
-                                        const sendBtn = document.getElementById('chat-send-btn');
-                                        sendBtn?.click();
-                                    }, 10);
-                                }}
-                                className="text-xs px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 transition-colors shadow-sm"
+                                onClick={handleClearChat}
+                                disabled={isLoading}
+                                className="flex-shrink-0 text-xs px-3 py-1.5 flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="ลบประวัติการสนทนา"
                             >
-                                {prompt}
+                                <TrashIcon className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">ลบประวัติ</span>
                             </button>
-                        ))}
+                        )}
                     </div>
-                )}
+                ) : null}
                 <div className="relative flex items-center">
                     <input
                         type="text"

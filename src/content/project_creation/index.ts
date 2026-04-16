@@ -1,7 +1,6 @@
 import { projectCreationConfig } from './config';
 import ProjectTopic1 from './topic1';
 import ProjectTopic2 from './topic2';
-import ProjectTopic3 from './topic3';
 import ProjectTopic4 from './topic4';
 import ProjectTopic5 from './topic5';
 import ProjectTopic6 from './topic6';
@@ -25,58 +24,58 @@ export const project_creation = {
       {
         title: 'ช่วงที่ 1: เตรียมตัวออกเดินทาง 🚩',
         description: 'เริ่มต้นด้วยข้อมูลพื้นฐาน ค้นหาไอเดีย และออกแบบโครงงานแบบครบวงจร',
-        topicIndices: [0, 1, 2]
+        topicIndices: [0, 1]
       },
       {
         title: 'ช่วงที่ 2: บทที่ 1 - เปิดหัวใจปัญหา 📝',
         description: 'วิเคราะห์ปัญหาที่แฝงอยู่และร่างจุดเริ่มต้นของโครงงาน',
-        topicIndices: [3, 4, 5]
+        topicIndices: [2, 3, 4]
       },
       {
         title: 'ช่วงที่ 3: บทที่ 2 - ขุมทรัพย์ความรู้ 📚',
         description: 'สืบค้นข้อมูลสนับสนุนเพื่อให้โครงงานมีความน่าเชื่อถือ',
-        topicIndices: [6, 7]
+        topicIndices: [5, 6]
       },
       {
         title: 'ช่วงที่ 4: บทที่ 3 - วางแผนการรบ 🧪',
         description: 'ออกแบบการทดลองและวิธีการทำงานอย่างเป็นระบบ',
-        topicIndices: [8, 9, 10]
+        topicIndices: [7, 8, 9]
       },
       {
         title: 'ช่วงที่ 5: บทที่ 4 - โชว์ผลลัพธ์ 📊',
         description: 'บันทึกสิ่งที่ค้นพบและนำเสนอผ่านกราฟ/ตารางที่เหมาะสม',
-        topicIndices: [11, 12]
+        topicIndices: [10, 11]
       },
       {
         title: 'ช่วงที่ 6: บทที่ 5 - บทเรียนและความสำเร็จ 🏁',
         description: 'สรุปสิ่งที่ได้เรียนรู้และแนวทางการพัฒนาต่อในอนาคต',
-        topicIndices: [13, 14]
+        topicIndices: [12, 13]
       },
       {
         title: 'ช่วงที่ 7: เข้าเส้นชัย 📚',
         description: 'จัดทำบทคัดย่อ อ้างอิง และรวบรวมเล่มรายงานฉบับสมบูรณ์',
-        topicIndices: [15, 16]
+        topicIndices: [14, 15]
       }
     ],
     topics: [
       { title: 'ก้าวที่ 1: แนะนำตัวนักประดิษฐ์ ✍️', details: ProjectTopic1 },
-      { title: 'ก้าวที่ 2: ระดมสมองและออกแบบโครงงาน (AI) 💡🎯', details: ProjectTopic2 },
-      { title: 'ก้าวที่ 3: ตั้งชื่อเรื่องสุดปัง (รวมอยู่ในก้าวที่ 2) 🏷️', details: ProjectTopic3 },
-      { title: 'ก้าวที่ 4: วิเคราะห์ปัญหาที่อยากแก้ (AI) 🔍', details: ProjectTopic4 },
-      { title: 'ก้าวที่ 5: ร่างบทนำและความสำคัญ (บทที่ 1) 📝', details: ProjectTopic5 },
-      { title: 'ก้าวที่ 6: เป้าหมายและสมมติฐาน (รวมอยู่ในก้าวที่ 2) 🎯', details: ProjectTopic6 },
-      { title: 'ก้าวที่ 7: กุญแจสู่การค้นความรู้ (AI) 🔑', details: ProjectTopic7 },
-      { title: 'ก้าวที่ 8: สะสมแต้มความรู้ (บทที่ 2) 📚', details: ProjectTopic8 },
-      { title: 'ก้าวที่ 9: วางกลยุทธ์การทดลอง (AI) 🧪', details: ProjectTopic9 },
-      { title: 'ก้าวที่ 10: ความแม่นยำและการออกแบบ 🛠️', details: ProjectTopic10 },
-      { title: 'ก้าวที่ 11: วิธีทำอย่างละเอียด (บทที่ 3) 📋', details: ProjectTopic11 },
-      { title: 'ก้าวที่ 12: กราฟและตารางที่เหมาะสม (AI) 📊', details: ProjectTopic12 },
-      { title: 'ก้าวที่ 13: บันทึกความว้าว (บทที่ 4) 🔍', details: ProjectTopic13 },
-      { title: 'ก้าวที่ 14: ถอดรหัสผลการทดลอง (AI) 🔮', details: ProjectTopic14 },
-      { title: 'ก้าวที่ 15: สรุปผลและข้อเสนอแนะ (บทที่ 5) 🏁', details: ProjectTopic15 },
-      { title: 'ก้าวที่ 16: บทคัดย่อและเอกสารอ้างอิง ✍️', details: ProjectTopic16 },
-      { title: 'ก้าวที่ 17: ตรวจสอบและดาวน์โหลดเล่มรายงาน 📚', details: ProjectTopic17 },
+      { title: 'ก้าวที่ 2: ระดมสมองและตั้งชื่อเรื่อง (AI) 💡🏷️', details: ProjectTopic2 },
+      { title: 'ก้าวที่ 3: วิเคราะห์ปัญหาที่อยากแก้ (AI) 🔍', details: ProjectTopic4 },
+      { title: 'ก้าวที่ 4: ร่างบทนำและความสำคัญ (บทที่ 1) 📝', details: ProjectTopic5 },
+      { title: 'ก้าวที่ 5: เป้าหมายและสมมติฐาน 🎯', details: ProjectTopic6 },
+      { title: 'ก้าวที่ 6: กุญแจสู่การค้นความรู้ (AI) 🔑', details: ProjectTopic7 },
+      { title: 'ก้าวที่ 7: สะสมแต้มความรู้ (บทที่ 2) 📚', details: ProjectTopic8 },
+      { title: 'ก้าวที่ 8: วางกลยุทธ์การทดลอง (AI) 🧪', details: ProjectTopic9 },
+      { title: 'ก้าวที่ 9: ความแม่นยำและการออกแบบ 🛠️', details: ProjectTopic10 },
+      { title: 'ก้าวที่ 10: วิธีทำอย่างละเอียด (บทที่ 3) 📋', details: ProjectTopic11 },
+      { title: 'ก้าวที่ 11: กราฟและตารางที่เหมาะสม (AI) 📊', details: ProjectTopic12 },
+      { title: 'ก้าวที่ 12: บันทึกความว้าว (บทที่ 4) 🔍', details: ProjectTopic13 },
+      { title: 'ก้าวที่ 13: ถอดรหัสผลการทดลอง (AI) 🔮', details: ProjectTopic14 },
+      { title: 'ก้าวที่ 14: สรุปผลและข้อเสนอแนะ (บทที่ 5) 🏁', details: ProjectTopic15 },
+      { title: 'ก้าวที่ 15: บทคัดย่อและเอกสารอ้างอิง ✍️', details: ProjectTopic16 },
+      { title: 'ก้าวที่ 16: ตรวจสอบและดาวน์โหลดเล่มรายงาน 📚', details: ProjectTopic17 },
 
       { title: 'ผู้ช่วย AI ทั่วไป 🤖', details: AssistantPage },
     ]
 };
+

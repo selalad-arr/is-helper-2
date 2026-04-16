@@ -4,7 +4,7 @@ import { ShieldCheck, Ruler, Layers } from 'lucide-react';
 const ProjectTopic10 = () => {
     return (
         <div className="space-y-8">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 10: ความแม่นยำและการออกแบบ 🛠️</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 9: ความแม่นยำและการออกแบบ 🛠️</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-6 bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-800/50">

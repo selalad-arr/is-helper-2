@@ -4,14 +4,14 @@ import { AnimatePresence } from 'motion/react';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 // --- Lazy Load Pages ---
-const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const HomePage = lazy(() => import('./pages/HomePage'));
 const ISPage = lazy(() => import('./pages/ISPage').then(m => ({ default: m.ISPage })));
 const TopicPage = lazy(() => import('./pages/TopicPage').then(m => ({ default: m.TopicPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const LessonPlanPage = lazy(() => import('./pages/LessonPlanPage'));
 const TutorialPage = lazy(() => import('./pages/TutorialPage'));
 const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
-const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const RoleSelectionPage = lazy(() => import('./pages/RoleSelectionPage').then(m => ({ default: m.RoleSelectionPage })));
 const StudentClassroomGate = lazy(() => import('./pages/StudentClassroomGate').then(m => ({ default: m.StudentClassroomGate })));
 const PricingPage = lazy(() => import('./pages/PricingPage'));

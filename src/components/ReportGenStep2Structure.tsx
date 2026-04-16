@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateSectionFeedback } from '../services/geminiService';
-import type { ReportStructure, ReportChapter, ReportSection } from '../services/geminiService';
+import { generateSectionFeedback } from '../services/gemini';
+import type { ReportStructure, ReportChapter, ReportSection } from '../services/gemini';
 import { SparklesIcon, DocumentTextIcon, LightBulbIcon, BookOpenIcon, CameraIcon, XMarkIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -61,8 +61,29 @@ const ReportGenStep2Structure: React.FC<Step2Props> = (props) => {
             section_header: section.header,
             with_image: !!imageInput,
         });
+
+        // Build full report context from local state
+        const compiled: string[] = [];
+        reportStructure?.chapters.forEach(ch => {
+            compiled.push(`[บทที่ ${ch.chapter_number}: ${ch.title}]`);
+            ch.sections.forEach((sec, sIdx) => {
+                const inputKey = `${ch.chapter_number}_${sIdx}`;
+                if (studentInputs[inputKey]) {
+                    compiled.push(`${sec.header}: ${studentInputs[inputKey]}`);
+                }
+            });
+        });
+        const fullReportContext = compiled.join('\n');
+
         try {
-            const feedback = await generateSectionFeedback(reportStructure!.title, `บทที่ ${chapter.chapter_number}: ${chapter.title}`, section.header, studentInput, imageInput);
+            const feedback = await generateSectionFeedback(
+                reportStructure!.title, 
+                `บทที่ ${chapter.chapter_number}: ${chapter.title}`, 
+                section.header, 
+                studentInput, 
+                imageInput,
+                fullReportContext
+            );
             setFeedbackResults(prev => ({ ...prev, [key]: feedback }));
         } catch (e: any) {
              setFeedbackResults(prev => ({ ...prev, [key]: `เกิดข้อผิดพลาด: ${e.message}` }));

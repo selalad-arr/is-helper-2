@@ -8,7 +8,7 @@ import {
     Loader2, FileText, Download, Sparkles, AlertCircle
 } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
-import { analyzeSource } from '../services/geminiService';
+import { analyzeSource } from '../services/gemini';
 import PrintableReport from './PrintableReport';
 
 // Standard Structure Template if AI hasn't been used

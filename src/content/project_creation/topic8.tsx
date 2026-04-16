@@ -9,7 +9,7 @@ const ProjectTopic8 = () => {
     return (
         <div className="space-y-10">
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 8: สะสมแต้มความรู้ (บทที่ 2) 📚</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 7: สะสมแต้มความรู้ (บทที่ 2) 📚</h3>
                 
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-6 mb-4">
                     <h4 className="font-semibold text-lg mb-2 text-emerald-800 dark:text-emerald-300 flex items-center gap-2">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateSimpleContent } from '../services/geminiService';
+import { generateSimpleContent } from '../services/gemini';
 import { ArrowRight, CheckCircle, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 
 interface IS3Topic1CardFlowProps {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useFirestoreData } from '../hooks/useFirestore';
-import { generateSimpleContent } from '../services/geminiService';
+import { generateSimpleContent } from '../services/gemini';
 
 export const IdeaMixer = () => {
     const { data, updateData } = useFirestoreData('user_exercises', 'idea_mixer', {

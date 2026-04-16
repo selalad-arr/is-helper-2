@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { IS_CONFIG } from '../content';
 import { ArrowLeftIcon, DocumentTextIcon } from '../ui/icons';
 import { useFirestoreData } from '../hooks/useFirestore';
+import { useProjectData } from '../hooks/useProjectData';
 import { ReactionSystem } from '../components/ReactionSystem';
 
 export const TopicPage = () => {
@@ -15,6 +16,8 @@ export const TopicPage = () => {
         visited_is2: [],
         visited_is3: []
     });
+
+    const { save: saveProjectData, isDirty: isProjectDataDirty, isSaving: isProjectDataSaving } = useProjectData();
     
     const config = IS_CONFIG[isKey as keyof typeof IS_CONFIG];
 
@@ -82,7 +85,15 @@ export const TopicPage = () => {
         );
     }
 
-    const handleSaveProgress = () => {
+    const handleSaveProgress = async () => {
+        // Dispatch global event so child components (like Topic2) can save their specific isolate data instances
+        window.dispatchEvent(new Event('saveGlobalProjectData'));
+
+        // Only save project metadata (like Title, Concept, etc.) if it has been modified (no auto-save loops).
+        if (isProjectDataDirty) {
+            await saveProjectData();
+        }
+
         if (isKey && topicIndex) {
             // @ts-ignore
             const visited = progressData[`visited_${isKey}`] || [];
@@ -140,9 +151,10 @@ export const TopicPage = () => {
                         <ReactionSystem topicId={`${isKey}_${topicIndexNum}`} />
                         <button 
                             onClick={handleSaveProgress}
-                            className="w-full md:w-auto px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm md:text-base hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-md"
+                            disabled={isProjectDataSaving}
+                            className="w-full md:w-auto px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm md:text-base hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-md disabled:bg-slate-500"
                         >
-                            บันทึกความก้าวหน้า
+                            {isProjectDataSaving ? "กำลังบันทึก..." : "บันทึกความก้าวหน้า"}
                         </button>
                      </div>
                 </div>

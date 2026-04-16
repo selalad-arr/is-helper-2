@@ -9,11 +9,11 @@ const ProjectTopic15 = () => {
     return (
         <div className="space-y-10">
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 15: สรุปผลและข้อเสนอแนะ (บทที่ 5) 🏁</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 14: สรุปผลและข้อเสนอแนะ (บทที่ 5) 🏁</h3>
                 
-                <div className="bg-amber-50 dark:bg-amber-900/20 p-5 rounded-2xl border border-amber-100 dark:border-amber-800/50 mb-8 text-center">
-                    <p className="text-amber-800 dark:text-amber-300 leading-relaxed italic text-sm">
-                        "ใกล้ถึงเส้นชัยแล้วจ้า! มาสรุปสิ่งที่ได้เรียนรู้ทั้งหมด และแชร์ไอเดียว่าเราจะพัฒนาต่อยอดไปทางไหนดีนะ"
+                <div className="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/50 mb-8">
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                        "มาถึงบทสรุปกันแล้ว! มาทบทวนกันว่าสิ่งที่เราทำสำเร็จตามเป้าหมายไหม และมีอะไรที่อยากบอกนักประดิษฐ์คนต่อไปบ้าง"
                     </p>
                 </div>
 

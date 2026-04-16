@@ -1,14 +1,16 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateFeedback } from '../services/geminiService';
+import { generateFeedback } from '../services/gemini';
 import { LightBulbIcon, PaperAirplaneIcon, ChatBubbleOvalLeftEllipsisIcon, SparklesIcon, UserCircleIcon } from '../ui/icons';
 import { Chat } from '@google/genai';
-import { createChatSession, type ChatMessage, handleGeminiError } from '../services/geminiService';
+import { createChatSession, type ChatMessage, handleGeminiError } from '../services/gemini';
 import { trackEvent } from '../services/analyticsService';
 
 import { useParams } from 'react-router-dom';
 import { useProjectData } from '../hooks/useProjectData';
 import { useFirestoreData } from '../hooks/useFirestore';
+
+import { useAuth } from '../contexts/AuthContext/AuthProvider';
 
 interface InteractiveExerciseProps {
   question: string;
@@ -17,6 +19,9 @@ interface InteractiveExerciseProps {
 }
 
 const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, context, rows = 3 }) => {
+  const { userData } = useAuth();
+  const isPremium = userData?.isPremium || false;
+  
   const { isKey } = useParams<{ isKey: string }>();
   const { projectTitle, is1ProjectTitle, is2ProjectTitle, is3ProjectTitle } = useProjectData();
   
@@ -70,7 +75,7 @@ const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, con
 
         const initChat = async () => {
           try {
-              const chatSession = await createChatSession(chatSystemPrompt, chatHistory.slice(0, -1));
+              const chatSession = await createChatSession(chatSystemPrompt, chatHistory.slice(0, -1), isPremium);
               setFollowUpChat(chatSession);
           } catch (e) {
               console.error("Failed to resume follow-up chat", e);
@@ -78,7 +83,7 @@ const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, con
         };
         initChat();
     }
-  }, [feedback]);
+  }, [feedback, isPremium]); // Added isPremium to deps
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -127,7 +132,7 @@ const InteractiveExercise: React.FC<InteractiveExerciseProps> = ({ question, con
 - สนทนาต่อไปเรื่อยๆ เพื่อคลายข้อสงสัยและช่วยให้นักเรียนเห็นภาพการทำงานขั้นต่อไปได้ชัดเจนที่สุด`;
 
       try {
-          const chatSession = await createChatSession(chatSystemPrompt);
+          const chatSession = await createChatSession(chatSystemPrompt, [], isPremium);
           setFollowUpChat(chatSession);
           setChatHistory([{ role: 'model', parts: [{ text: "มีคำถามเพิ่มเติมเกี่ยวกับคำแนะนำ หรืออยากให้ช่วยวางแผนขั้นต่อไป ถามได้เลยนะครับ/คะ" }] }]);
       } catch (error) {

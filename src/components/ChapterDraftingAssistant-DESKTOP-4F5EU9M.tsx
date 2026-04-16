@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateChapterGuideline, ChapterGuideline, generateSectionFeedback } from '../services/geminiService';
+import { generateChapterGuideline, ChapterGuideline, generateSectionFeedback } from '../services/gemini';
 import { Loader2, Sparkles, RefreshCw, Camera, X, Lightbulb } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
 import { compressImage } from '../utils/imageCompression';

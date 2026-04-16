@@ -9,11 +9,11 @@ const ProjectTopic11 = () => {
     return (
         <div className="space-y-10">
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 11: วิธีทำอย่างละเอียด (บทที่ 3) 📋</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 10: วิธีทำอย่างละเอียด (บทที่ 3) 📋</h3>
                 
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 mb-8">
-                    <p className="text-indigo-800 dark:text-indigo-300 leading-relaxed italic text-sm">
-                        "ตอนนี้ถีงเวลาเอาแผนที่ AI ช่วยวิเคราะห์ในก้าวที่ 9 และวัสดุที่เตรียมในก้าวที่ 10 มาเขียนเป็นวิธีกาารทำงานจริงๆ แล้วครับ!"
+                <div className="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/50 mb-8">
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                        "ในส่วนนี้ เราจะมาเล่าขั้นตอนการประดิษฐ์หรือการทดลองของเราให้ละเอียดที่สุด เพื่อให้คนอื่นที่สนใจสามารถนำไปทำตามได้จ้า"
                     </p>
                 </div>
 

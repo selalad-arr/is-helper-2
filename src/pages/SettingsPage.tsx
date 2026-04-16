@@ -46,7 +46,8 @@ const ThemeSwitcher: React.FC = () => {
 
 const SettingsPage: React.FC = () => {
   const { customApiKey, useFreeQuota, quotaUsed, setCustomApiKey, setUseFreeQuota } = useApiSettings();
-  const { user, login } = useAuth();
+  const { user, userData, login } = useAuth();
+  const isPremium = userData?.isPremium || false;
   const [isEditingKey, setIsEditingKey] = useState(false);
   const [tempKey, setTempKey] = useState(customApiKey || '');
   const [showKey, setShowKey] = useState(false);
@@ -109,7 +110,28 @@ const SettingsPage: React.FC = () => {
           </div>
           
           <div className="space-y-4">
-              {useFreeQuota && !customApiKey && (
+              {isPremium && (
+                  <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-100 dark:border-amber-800/50 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                          <EyeIcon className="w-12 h-12 text-amber-500" />
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                              <span className="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5">
+                                  👑 บริการสมาชิกพรีเมี่ยม
+                              </span>
+                          </div>
+                          <span className="text-xs font-bold bg-amber-200 dark:bg-amber-800/50 text-amber-800 dark:text-amber-300 px-2 py-1 rounded-md">
+                              ใช้งานไม่จำกัด
+                          </span>
+                      </div>
+                      <p className="text-sm text-amber-700 dark:text-amber-400 mb-0 relative z-10">
+                          คุณกำลังใช้งาน AI ผ่านโควต้าของผู้สร้างโครงงานโดยตรง ไม่จำเป็นต้องระบุ API Key ส่วนตัวครับ
+                      </p>
+                  </div>
+              )}
+
+              {useFreeQuota && !customApiKey && !isPremium && (
                   <div className="p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-800">
                       <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold text-sky-800 dark:text-sky-300">กำลังใช้โควต้าฟรี</span>
@@ -118,7 +140,7 @@ const SettingsPage: React.FC = () => {
                           </span>
                       </div>
                       <p className="text-sm text-sky-700 dark:text-sky-400 mb-4">
-                          คุณสามารถใช้ AI ได้ฟรี 3 ครั้งต่อวัน หากต้องการใช้งานไม่จำกัด กรุณาใส่ API Key ของคุณเอง
+                          คุณสามารถใช้ AI ได้ฟรี 3 ครั้งต่อวัน หากต้องการใช้งานไม่จำกัด กรุณาใส่ API Key ของคุณเอง หรืออัปเกรดเป็นพรีเมี่ยม
                       </p>
                       <button 
                           onClick={() => setIsEditingKey(true)}

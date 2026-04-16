@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { generateChapterGuideline, ChapterGuideline, generateSectionFeedback } from '../services/geminiService';
+import { generateChapterGuideline, ChapterGuideline, generateSectionFeedback } from '../services/gemini/is-services';
+import { fetchFullReportContext } from '../services/reportContextService';
 import { Loader2, Sparkles, RefreshCw, Camera, X, Lightbulb } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
 import { compressImage } from '../utils/imageCompression';
 import { useFirestoreData } from '../hooks/useFirestore';
 import { uploadImageToStorage } from '../utils/storageUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface ChapterDraftingAssistantProps {
     chapterNumber: number;
@@ -23,6 +27,7 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
     coreConcept = '',
     researchData = ''
 }) => {
+    const { user, userData } = useAuth();
     const storageId = stepNumber || chapterNumber;
 
     const { data: chapterData, updateData: updateChapterData, loading: isDataLoading } = useFirestoreData('user_chapters', String(storageId), {
@@ -72,13 +77,19 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
 
     const handleGenerate = async () => {
         if (!projectTitle.trim()) {
-            setError("กรุณากำหนดชื่อโครงงานในก้าวที่ 1 ก่อนครับ");
+            setError("กรุณากำหนดชื่อโครงงานในก้าวที่ 2 ก่อนครับ (หรือคลิกบันทึกในก้าวที่ 2 ให้เรียบร้อยจ้า)");
             return;
         }
         setIsLoading(true);
         setError(null);
+        
+        let fullReportContext = "";
+        if (user && userData) {
+            fullReportContext = await fetchFullReportContext(user.uid, userData.classId || 'personal');
+        }
+
         try {
-            const result = await generateChapterGuideline(projectTitle, chapterNumber, coreConcept, researchData, stepNumber);
+            const result = await generateChapterGuideline(projectTitle, chapterNumber, coreConcept, researchData, stepNumber, fullReportContext);
             setGuideline(result);
             saveToFirestore({ guideline: JSON.stringify(result) });
         } catch (e: any) {
@@ -188,8 +199,22 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
             section_header: sectionHeader,
             with_image: !!imageInput,
         });
+
+        // Fetch full report context to guide AI
+        let fullReportContext = "";
+        if (user && userData) {
+            fullReportContext = await fetchFullReportContext(user.uid, userData.classId || 'personal');
+        }
+
         try {
-            const feedback = await generateSectionFeedback(projectTitle, `บทที่ ${chapterNumber}: ${guideline?.title || ''}`, sectionHeader, studentInput, imageInput);
+            const feedback = await generateSectionFeedback(
+                projectTitle, 
+                `บทที่ ${chapterNumber}: ${guideline?.title || ''}`, 
+                sectionHeader, 
+                studentInput, 
+                imageInput,
+                fullReportContext
+            );
             const updatedFeedback = { ...feedbackResults, [key]: feedback };
             setFeedbackResults(updatedFeedback);
             saveToFirestore({ feedbackResults: JSON.stringify(updatedFeedback) });

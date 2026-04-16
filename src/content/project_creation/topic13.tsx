@@ -9,11 +9,11 @@ const ProjectTopic13 = () => {
     return (
         <div className="space-y-10">
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 13: บันทึกความว้าว (บทที่ 4) 🔍</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">ก้าวที่ 12: บันทึกความว้าว (บทที่ 4) 🔍</h3>
                 
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 mb-8">
-                    <p className="text-emerald-800 dark:text-emerald-300 leading-relaxed italic text-sm text-center">
-                        "โชว์สิ่งที่น้องๆ ค้นพบจากการทดลองจริงที่นี่นะจ๊ะ ยิ่งมีรูปภาพหรือตารางที่ชัดเจน ยิ่งทำให้โครงงานดูเป็นมืออาชีพ!"
+                <div className="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/50 mb-8">
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                        "ได้เวลามาโชว์ผลการทดลองกันแล้ว! ไม่ว่าผลจะออกมาเป็นยังไง นั่นคือความรู้ใหม่ที่เราค้นพบนะจ๊ะ"
                     </p>
                 </div>
 

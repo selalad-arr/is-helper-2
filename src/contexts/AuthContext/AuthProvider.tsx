@@ -1,30 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider, lineProvider, db } from '../firebase';
-import { doc, setDoc, getDoc, collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { 
-  AuthProvider as FirebaseAuthProvider 
-} from 'firebase/auth';
-
-import { UserProfile } from '../types';
-
-interface AuthContextType {
-  user: User | null;
-  userData: UserProfile | null;
-  userRole: 'student' | 'teacher' | 'admin' | null;
-  loading: boolean;
-  isUserDataLoaded: boolean;
-  login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
-  logout: () => Promise<void>;
-  updateProfile: (data: any) => Promise<void>;
-  joinClassroom: (classCode: string) => Promise<void>;
-  selectClassroom: (classId: string | null) => Promise<void>;
-  selectRole: (role: 'student' | 'teacher' | 'admin') => Promise<void>;
-  switchRole: () => Promise<void>;
-  checkAccess: (type: 'ai' | 'project') => boolean;
-  authError: string | null;
-  clearError: () => void;
-}
+import { signInWithPopup, signOut, onAuthStateChanged, AuthProvider as FirebaseAuthProvider } from 'firebase/auth';
+import { auth, googleProvider, facebookProvider, lineProvider, db } from '../../firebase';
+import { doc, setDoc, collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { AuthContextType } from './types';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -32,7 +10,6 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   loading: true,
   login: async () => {},
-
   logout: async () => {},
   updateProfile: async () => {},
   joinClassroom: async () => {},
@@ -55,7 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authError, setAuthError] = useState<string | null>(null);
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
-  // Use refs to track current state for the onAuthStateChanged listener
   const userRef = useRef<any | null>(null);
   const isMockAdminRef = useRef<boolean>(false);
   const processedUidRef = useRef<string | null>(null);
@@ -65,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeDoc: (() => void) | undefined;
     
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-      // If we are in a mock admin session, ignore null updates from Firebase Auth
       if (isMockAdminRef.current && !currentUser) {
         setLoading(false);
         return;
@@ -74,7 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userRef.current = currentUser;
       
       if (currentUser) {
-        // Prevent infinite loops by checking if we have already processed this user UID
         if (processedUidRef.current === currentUser.uid) {
           setUser(currentUser);
           setIsUserDataLoaded(true);
@@ -88,20 +62,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
-          
-          // Listen to user document for real-time updates
           if (unsubscribeDoc) unsubscribeDoc();
           
           unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
               const data = docSnap.data();
-              // Force admin role for the founder email
               const finalRole = currentUser.email === 'selalad@gmail.com' ? 'admin' : (data.role || null);
-              
               setUserData(data);
               setUserRole(finalRole);
             } else {
-              // Create default doc if missing
               const finalRole = currentUser.email === 'selalad@gmail.com' ? 'admin' : null;
               const defaultData: any = {
                 uid: currentUser.uid,
@@ -115,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 projectCount: 0
               };
               if (finalRole) defaultData.role = finalRole;
-              
               setUserData(defaultData);
               setUserRole(finalRole);
               setDoc(userDocRef, defaultData, { merge: true });
@@ -124,11 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
           }, (error) => {
             console.error("Error fetching user data:", error);
-            setIsUserDataLoaded(true); // Still set to true to avoid infinite loading
+            setIsUserDataLoaded(true);
             setLoading(false);
           });
 
-          // Record login history (non-blocking)
           addDoc(collection(db, 'users', currentUser.uid, 'login_history'), {
             uid: currentUser.uid,
             timestamp: serverTimestamp(),
@@ -168,7 +135,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('LIMIT_EXCEEDED');
     }
     
-    // Find classroom by code
     const classroomsRef = collection(db, 'classrooms');
     const { query, where, getDocs, updateDoc, increment, arrayUnion } = await import('firebase/firestore');
     const q = query(classroomsRef, where('classCode', '==', classCode));
@@ -181,12 +147,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const classroomDoc = querySnapshot.docs[0];
     const classId = classroomDoc.id;
 
-    // Check if already in this classroom
     if (userData?.classroomIds?.includes(classId)) {
         throw new Error('คุณอยู่ในห้องเรียนนี้อยู่แล้ว');
     }
     
-    // Update user's classId, add to history, and increment project count
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { 
       classId,
@@ -194,7 +158,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       projectCount: increment(1)
     });
     
-    // Increment student count in classroom
     await updateDoc(classroomDoc.ref, { studentCount: increment(1) });
   };
 
@@ -228,15 +191,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
-        
-        // Ensure the admin mock email retains admin role automatically
         if (result.user.email === 'admin') {
           setUserRole('admin');
           setUserData((prev: any) => ({ ...prev, role: 'admin' }));
           await setDoc(userDocRef, { role: 'admin' }, { merge: true });
         }
         
-        // We do a merge. We don't set a role here anymore; it will be handled by the Role Selection UI if missing.
         await setDoc(userDocRef, { 
             uid: result.user.uid,
             email: result.user.email || '',
@@ -259,7 +219,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-
   const selectRole = async (role: 'student' | 'teacher' | 'admin') => {
     if (!user) return;
     setLoading(true);
@@ -281,7 +240,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const userDocRef = doc(db, 'users', user.uid);
-      // Explicitly set role to null in Firestore to trigger the modal correctly across sessions
       await setDoc(userDocRef, { role: null }, { merge: true });
       setUserRole(null);
       setUserData((prev: any) => ({ ...prev, role: null }));
@@ -313,15 +271,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAccess = (type: 'ai' | 'project'): boolean => {
     if (!userData) return false;
-    
     const hasCustomKey = typeof window !== 'undefined' && !!localStorage.getItem('custom_gemini_api_key');
     if (userData.isPremium || hasCustomKey) return true;
-    
-    if (type === 'project') {
-      return (userData.projectCount || 0) < 3;
-    }
-    
-    // AI limits are handled in geminiService.ts (3/day for free)
+    if (type === 'project') return (userData.projectCount || 0) < 3;
     return true;
   };
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { generateSimpleContent } from '../services/geminiService';
+import { generateSimpleContent } from '../services/gemini';
+import { fetchFullReportContext } from '../services/reportContextService';
+import { useAuth } from '../contexts/AuthContext';
 import { BarChart3, Sparkles, Loader2, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -8,13 +10,21 @@ interface Props {
 }
 
 const ResultVizAI: React.FC<Props> = ({ projectTitle }) => {
+    const { user, userData } = useAuth();
     const [advice, setAdvice] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleGetAdvice = async () => {
         setIsLoading(true);
         try {
+            let fullReportContext = "";
+            if (user && userData) {
+                fullReportContext = await fetchFullReportContext(user.uid, userData.classId || 'personal');
+            }
+
             const prompt = `ชื่อโครงงาน: "${projectTitle}"
+${fullReportContext ? `[บริบทของเล่มรายงานปัจจุบัน]\n${fullReportContext}\n\n` : ''}
+
 กรุณาแนะนำการเลือกใช้ "กราฟ" หรือ "ตาราง" ที่เหมาะสมสำหรับการโชว์ผลการทดลองของโครงงานนี้
 1. ควรใช้ตารางแบบไหน (หัวข้อหัวตารางควรมีอะไรบ้าง)
 2. ควรใช้กราฟประเภทไหน (แท่ง, เส้น, หรือวงกลม) เพราะอะไร

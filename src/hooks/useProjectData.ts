@@ -195,17 +195,33 @@ export const useProjectData = (sectionOverride?: string) => {
         setIsDirty(true);
     };
 
-    const projectTitle = selectedIS === 'IS1' ? is1ProjectTitle :
-                         selectedIS === 'IS2' ? is2ProjectTitle :
-                         selectedIS === 'IS3' ? is3ProjectTitle :
-                         independentProjectTitle;
+    const projectTitle = (() => {
+        const primary = selectedIS === 'IS1' ? is1ProjectTitle :
+                        selectedIS === 'IS2' ? is2ProjectTitle :
+                        selectedIS === 'IS3' ? is3ProjectTitle :
+                        independentProjectTitle;
+        // Search for any available title if primary is empty
+        return primary || independentProjectTitle || is1ProjectTitle || is2ProjectTitle || is3ProjectTitle || "";
+    })();
 
     const setProjectTitle = (title: string) => {
         if (selectedIS === 'IS1') setIs1ProjectTitle(title);
         else if (selectedIS === 'IS2') setIs2ProjectTitle(title);
         else if (selectedIS === 'IS3') setIs3ProjectTitle(title);
         else setIndependentProjectTitle(title);
+        setIsDirty(true);
     };
+
+    // Listen for global save commands (e.g. from the main "Save Progress" button)
+    useEffect(() => {
+        const handleGlobalSave = () => {
+            if (isDirty) {
+                saveCurrentData();
+            }
+        };
+        window.addEventListener('saveGlobalProjectData', handleGlobalSave);
+        return () => window.removeEventListener('saveGlobalProjectData', handleGlobalSave);
+    }, [isDirty, independentProjectTitle, is1ProjectTitle, is2ProjectTitle, is3ProjectTitle, selectedIS, coreConcept, researchData]);
 
     return { 
         projectTitle, 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { generateSimpleContent } from '../services/geminiService';
+import { generateSimpleContent } from '../services/gemini';
+import { fetchFullReportContext } from '../services/reportContextService';
+import { useAuth } from '../contexts/AuthContext';
 import { Beaker, Sparkles, Loader2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -10,16 +12,24 @@ interface Props {
 }
 
 const ExperimentalPlanningAI: React.FC<Props> = ({ projectTitle, coreConcept, researchData }) => {
+    const { user, userData } = useAuth();
     const [plan, setPlan] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handlePlan = async () => {
         setIsLoading(true);
         try {
+            let fullReportContext = "";
+            if (user && userData) {
+                fullReportContext = await fetchFullReportContext(user.uid, userData.classId || 'personal');
+            }
+
             const prompt = `คุณคือผู้เชี่ยวชาญด้านวิธีวิจัยและโครงงานวิทยาศาสตร์
 ชื่อโครงงาน: "${projectTitle}"
 ปัญหาหลัก: ${coreConcept}
 ข้อมูลอ้างอิง: ${researchData}
+
+${fullReportContext ? `[บริบทของเล่มรายงานฉบับสมบูรณ์ที่เขียนมาแล้ว]\n${fullReportContext}\n\n` : ''}
 
 กรุณาวิเคราะห์และวางแผนกลยุทธ์การทดลองให้เหมาะสม โดยระบุ:
 1. ตัวแปรต้น (สิ่งที่เปลี่ยน), ตัวแปรตาม (สิ่งที่วัด), ตัวแปรควบคุม (สิ่งที่คุมให้คงที่)

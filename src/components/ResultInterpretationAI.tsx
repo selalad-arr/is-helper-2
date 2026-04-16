@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { generateSimpleContent } from '../services/geminiService';
+import { generateSimpleContent } from '../services/gemini';
+import { fetchFullReportContext } from '../services/reportContextService';
+import { useAuth } from '../contexts/AuthContext';
 import { HelpCircle, Sparkles, Loader2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -9,14 +11,21 @@ interface Props {
 }
 
 const ResultInterpretationAI: React.FC<Props> = ({ projectTitle, researchData }) => {
+    const { user, userData } = useAuth();
     const [analysis, setAnalysis] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAnalyze = async () => {
         setIsLoading(true);
         try {
+            let fullReportContext = "";
+            if (user && userData) {
+                fullReportContext = await fetchFullReportContext(user.uid, userData.classId || 'personal');
+            }
+
             const prompt = `ชื่อโครงงาน: "${projectTitle}"
 เอกสารอ้างอิงที่เคยสืบค้น: ${researchData}
+${fullReportContext ? `[บริบทของเล่มรายงานปัจจุบัน]\n${fullReportContext}\n\n` : ''}
 
 กรุณาช่วยวิเคราะห์แนวทางการสรุปและอภิปรายผล (สำหรับบทที่ 5):
 1. แนวทางการเดาคำตอบว่า "ทำไมผลถึงออกมาเป็นแบบนั้น" (เช่น เพราะสมุนไพรมีสาร... หรือ เพราะแรงดัน...)

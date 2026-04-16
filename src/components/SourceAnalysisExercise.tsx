@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { analyzeSource } from '../services/geminiService';
+import { analyzeSource } from '../services/gemini';
 import { DocumentTextIcon, PhotoIcon, SparklesStarIcon, ArrowUpOnSquareIcon } from '../ui/icons';
 import { trackEvent } from '../services/analyticsService';
 import { compressImage } from '../utils/imageCompression';
@@ -111,7 +111,7 @@ const SourceAnalysisExercise: React.FC = () => {
         }
         
         try {
-            const aiFeedback = await analyzeSource(source);
+            const aiFeedback = await analyzeSource("ช่วยวิเคราะห์แหล่งข้อมูลนี้หน่อย", [source]);
             setFeedback(aiFeedback);
             saveToFirestore({ feedback: aiFeedback });
         } catch (error) {

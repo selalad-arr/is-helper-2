@@ -19,7 +19,8 @@ interface ApiSettingsContextType {
 const ApiSettingsContext = createContext<ApiSettingsContextType | undefined>(undefined);
 
 export const ApiSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
+    const isPremium = userData?.isPremium || false;
     const [customApiKey, setCustomApiKeyState] = useState<string | null>(() => localStorage.getItem('custom_gemini_api_key'));
     const [useFreeQuota, setUseFreeQuotaState] = useState<boolean>(() => localStorage.getItem('use_free_quota') === 'true');
     const [quotaUsed, setQuotaUsed] = useState<number>(0);
@@ -50,13 +51,14 @@ export const ApiSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     useEffect(() => {
         if (!systemQuotaExceeded) {
-            if (customApiKey || useFreeQuota) {
+            // Premium users are always "complete" as they use creator's key
+            if (isPremium || customApiKey || useFreeQuota) {
                 setIsSettingsComplete(true);
             } else {
                 setIsSettingsComplete(false);
             }
         }
-    }, [customApiKey, useFreeQuota, systemQuotaExceeded]);
+    }, [isPremium, customApiKey, useFreeQuota, systemQuotaExceeded]);
 
     useEffect(() => {
         const fetchQuota = async () => {
