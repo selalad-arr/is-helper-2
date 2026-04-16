@@ -4,7 +4,7 @@ import Topic2CardFlow from '../../components/Topic2CardFlow';
 import { Search } from 'lucide-react';
 
 const ProjectTopic4 = () => {
-    const { projectTitle, setCoreConcept, save, isSaving, isDirty } = useProjectData();
+    const { projectTitle, setCoreConcept } = useProjectData();
 
     return (
         <div className="space-y-6">
@@ -22,29 +22,6 @@ const ProjectTopic4 = () => {
                     <h4 className="font-semibold text-slate-700 dark:text-slate-300">ระดมสมองวิเคราะห์ปัญหา</h4>
                 </div>
                 <Topic2CardFlow projectTitle={projectTitle} setCoreConcept={setCoreConcept} />
-            </div>
-
-            <div className="flex justify-end pt-6">
-                <button
-                    onClick={save}
-                    disabled={isSaving || !isDirty}
-                    className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all ${
-                        isDirty 
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 active:scale-95' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-default'
-                    }`}
-                >
-                    {isSaving ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                            กำลังบันทึก...
-                        </>
-                    ) : isDirty ? (
-                        <>บันทึกหลักการโครงงาน ✨</>
-                    ) : (
-                        <>บันทึกเรียบร้อย ✅</>
-                    )}
-                </button>
             </div>
         </div>
     );

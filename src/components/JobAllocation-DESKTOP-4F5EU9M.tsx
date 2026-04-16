@@ -30,7 +30,7 @@ const JobAllocation: React.FC = () => {
         if (!user) return;
         const compositeId = `${user.uid}_${contextId}`;
         const collRef = doc(db, 'user_collaborators', compositeId);
-        await setDoc(collRef, { members: newList, lastUpdated: new Date() }, { merge: true });
+        await setDoc(collRef, { members: newList, lastUpdated: new Date() });
         setCollaborators(newList);
     };
 

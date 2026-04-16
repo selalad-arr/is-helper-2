@@ -259,12 +259,9 @@ const Topic3DataCollectionFlow: React.FC<Topic3DataCollectionFlowProps> = ({ pro
                                     </div>
 
                                     <div className="flex justify-center">
-                                        <p className="text-amber-600 dark:text-amber-400 font-medium flex flex-col items-center gap-2 bg-amber-50 dark:bg-amber-900/30 px-6 py-3 rounded-2xl border border-amber-100 dark:border-amber-800/30">
-                                            <span className="flex items-center gap-2">
-                                                <CheckCircle className="w-5 h-5" />
-                                                วิเคราะห์ข้อมูลสำเร็จแล้ว!
-                                            </span>
-                                            <span className="text-xs opacity-80">อย่าลืมกดปุ่ม "บันทึกข้อมูลการสืบค้น" ด้านล่างด้วยนะจ๊ะ ✨</span>
+                                        <p className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-full">
+                                            <CheckCircle className="w-5 h-5" />
+                                            บันทึกข้อมูลลงใน "คลังข้อมูลอ้างอิงมาตรฐาน" เรียบร้อยแล้ว
                                         </p>
                                     </div>
                                 </div>

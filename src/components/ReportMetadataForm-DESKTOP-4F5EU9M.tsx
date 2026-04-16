@@ -21,7 +21,7 @@ interface Props {
 }
 
 const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
-    const { user, userData, isUserDataLoaded } = useAuth();
+    const { user, userData } = useAuth();
     const [metadata, setMetadata] = useState<ReportMetadata>({
         authorName: '',
         schoolName: '',
@@ -37,8 +37,8 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
     const contextId = userData?.classId || 'personal';
 
     useEffect(() => {
-        if (!user || !isUserDataLoaded) {
-            if (!user) setIsLoading(false);
+        if (!user) {
+            setIsLoading(false);
             return;
         }
 
@@ -54,8 +54,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                 }));
             } else {
                 // Return to defaults if no report exists for this context
-                // But only if we don't already have data in state (from a previous load or context)
-                setMetadata(prev => (prev.authorName || prev.schoolName) ? prev : {
+                setMetadata({
                     authorName: '',
                     schoolName: '',
                     semester: `ภาคเรียนที่ 1 ปีการศึกษา ${new Date().getFullYear() + 543}`,
@@ -75,29 +74,19 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
         return () => unsubscribeSnapshot();
     }, [user, contextId]);
 
-    const [isSaving, setIsSaving] = useState(false);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-    const handleChange = (field: keyof ReportMetadata, value: string) => {
-        setMetadata(prev => ({ ...prev, [field]: value }));
-        setHasUnsavedChanges(true);
-    };
-
-    const handleManualSave = async () => {
-        if (!user || !isUserDataLoaded || isSaving) return;
+    const handleSave = async (field: keyof ReportMetadata, value: string) => {
+        if (!user) return;
         
-        setIsSaving(true);
         const compositeId = `${user.uid}_${contextId}`;
+
+        // Update local state immediately for responsiveness
+        setMetadata(prev => ({ ...prev, [field]: value }));
 
         try {
             const reportRef = doc(db, 'user_reports', compositeId);
-            await setDoc(reportRef, { ...metadata, uid: user.uid, lastUpdated: new Date() }, { merge: true });
-            setHasUnsavedChanges(false);
+            await setDoc(reportRef, { [field]: value, uid: user.uid, lastUpdated: new Date() }, { merge: true });
         } catch (err) {
-            console.error(`Error saving metadata:`, err);
-            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
-        } finally {
-            setIsSaving(false);
+            console.error(`Error saving ${field}:`, err);
         }
     };
 
@@ -117,7 +106,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">ชื่อผู้จัดทำ (ระบุทีละคน ครั้งละบรรทัด)</label>
                         <textarea 
                             value={metadata.authorName} 
-                            onChange={e => handleChange('authorName', e.target.value)}
+                            onChange={e => handleSave('authorName', e.target.value)}
                             placeholder="เช่น&#10;1. นายสมชาย ใจดี&#10;2. นางสาวสวย เรียนเก่ง"
                             rows={3} 
                             className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -128,7 +117,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                             <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">ชื่อโรงเรียน</label>
                             <input 
                                 value={metadata.schoolName} 
-                                onChange={e => handleChange('schoolName', e.target.value)}
+                                onChange={e => handleSave('schoolName', e.target.value)}
                                 placeholder="เช่น โรงเรียนวิทยาศาสตร์..."
                                 type="text" 
                                 className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -138,7 +127,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                             <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">ภาคเรียน/ปีการศึกษา</label>
                             <input 
                                 value={metadata.semester} 
-                                onChange={e => handleChange('semester', e.target.value)}
+                                onChange={e => handleSave('semester', e.target.value)}
                                 type="text" 
                                 className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
                             />
@@ -151,7 +140,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">ชื่อวิชาที่เรียน</label>
                         <input 
                             value={metadata.subjectName} 
-                            onChange={e => handleChange('subjectName', e.target.value)}
+                            onChange={e => handleSave('subjectName', e.target.value)}
                             placeholder="เช่น วิชาวิทยาศาสตร์ (IS2)"
                             type="text" 
                             className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -161,7 +150,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">รหัสวิชา</label>
                         <input 
                             value={metadata.subjectCode} 
-                            onChange={e => handleChange('subjectCode', e.target.value)}
+                            onChange={e => handleSave('subjectCode', e.target.value)}
                             placeholder="เช่น ว30202"
                             type="text" 
                             className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -173,7 +162,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">กิตติกรรมประกาศ (ขอบคุณผู้ช่วยเหลือ/ที่ปรึกษา)</label>
                     <textarea 
                         value={metadata.acknowledgements} 
-                        onChange={e => handleChange('acknowledgements', e.target.value)}
+                        onChange={e => handleSave('acknowledgements', e.target.value)}
                         placeholder="เขียนขอบคุณคุณครูที่ปรึกษา ผู้ปกครอง หรือผู้ที่มีส่วนร่วมในการทำให้โครงงานนี้สำเร็จจ้า..."
                         rows={3} 
                         className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -189,7 +178,7 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">บทคัดย่อ (ย่อหน้าเดียว สรุปภาพรวมจากบทที่ 1-5)</label>
                 <textarea 
                     value={metadata.projectAbstract} 
-                    onChange={e => handleChange('projectAbstract', e.target.value)}
+                    onChange={e => handleSave('projectAbstract', e.target.value)}
                     placeholder="เล่าว่าทำอะไร ทำอย่างไร และผลเป็นอย่างไร แบบสั้นๆ ในย่อหน้าเดียวจ้า..."
                     rows={4} 
                     className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
@@ -199,34 +188,11 @@ const ReportMetadataForm: React.FC<Props> = ({ mode }) => {
                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-400">เอกสารอ้างอิง</label>
                 <textarea 
                     value={metadata.references} 
-                    onChange={e => handleChange('references', e.target.value)}
+                    onChange={e => handleSave('references', e.target.value)}
                     placeholder="เช่น&#10;1. ชื่อผู้แต่ง. (ปีที่พิมพ์). ชื่อหนังสือ. สำนักพิมพ์.&#10;2. เว็บไซต์..."
                     rows={4} 
                     className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-sky-500 transition-all text-slate-800 dark:text-slate-200"
                 />
-            </div>
-
-            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-700/50 mt-4">
-                <button
-                    onClick={handleManualSave}
-                    disabled={isSaving || !hasUnsavedChanges}
-                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all ${
-                        hasUnsavedChanges 
-                        ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/20 active:scale-95' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-default'
-                    }`}
-                >
-                    {isSaving ? (
-                        <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            กำลังบันทึก...
-                        </>
-                    ) : hasUnsavedChanges ? (
-                        <>บันทึกข้อมูลส่วนนี้ ✨</>
-                    ) : (
-                        <>บันทึกเรียบร้อย ✅</>
-                    )}
-                </button>
             </div>
         </div>
     );

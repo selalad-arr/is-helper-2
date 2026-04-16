@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export function useFirestoreData<T>(collectionName: string, documentId: string, initialData: T) {
-  const { user, userData, isUserDataLoaded } = useAuth();
+  const { user, userData } = useAuth();
   const [data, setData] = useState<T>(initialData);
   const [loading, setLoading] = useState(true);
 
@@ -30,11 +30,9 @@ export function useFirestoreData<T>(collectionName: string, documentId: string, 
   };
 
   useEffect(() => {
-    if (!user || !isUserDataLoaded) {
-      if (!user) {
-        setData(initialData);
-        setLoading(false);
-      }
+    if (!user) {
+      setData(initialData);
+      setLoading(false);
       return;
     }
 
@@ -45,9 +43,7 @@ export function useFirestoreData<T>(collectionName: string, documentId: string, 
       if (docSnap.exists()) {
         setData({ ...initialData, ...docSnap.data() });
       } else {
-        // Only reset to initialData if we don't have existing data yet
-        // This prevents "disappearing data" during context switches or slow updates
-        setData(prev => (prev && Object.keys(prev as any).length > Object.keys(initialData as any).length) ? prev : initialData);
+        setData(initialData);
       }
       setLoading(false);
     }, (error) => {
@@ -59,7 +55,7 @@ export function useFirestoreData<T>(collectionName: string, documentId: string, 
   }, [user, userData?.classId, collectionName, documentId]);
 
   const updateData = async (newData: Partial<T>) => {
-    if (!user || !isUserDataLoaded) return;
+    if (!user) return;
     try {
       const docRef = getDocRef();
       if (!docRef) return;

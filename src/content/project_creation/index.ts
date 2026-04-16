@@ -24,7 +24,7 @@ export const project_creation = {
     phases: [
       {
         title: 'ช่วงที่ 1: เตรียมตัวออกเดินทาง 🚩',
-        description: 'เริ่มต้นด้วยข้อมูลพื้นฐานและค้นหาไอเดียที่คุณหลงใหล',
+        description: 'เริ่มต้นด้วยข้อมูลพื้นฐาน ค้นหาไอเดีย และออกแบบโครงงานแบบครบวงจร',
         topicIndices: [0, 1, 2]
       },
       {
@@ -60,11 +60,11 @@ export const project_creation = {
     ],
     topics: [
       { title: 'ก้าวที่ 1: แนะนำตัวนักประดิษฐ์ ✍️', details: ProjectTopic1 },
-      { title: 'ก้าวที่ 2: ค้นหาไอเดียที่คุณหลงใหล 💡', details: ProjectTopic2 },
-      { title: 'ก้าวที่ 3: ตั้งชื่อเรื่องสุดปัง 🏷️', details: ProjectTopic3 },
+      { title: 'ก้าวที่ 2: ระดมสมองและออกแบบโครงงาน (AI) 💡🎯', details: ProjectTopic2 },
+      { title: 'ก้าวที่ 3: ตั้งชื่อเรื่องสุดปัง (รวมอยู่ในก้าวที่ 2) 🏷️', details: ProjectTopic3 },
       { title: 'ก้าวที่ 4: วิเคราะห์ปัญหาที่อยากแก้ (AI) 🔍', details: ProjectTopic4 },
       { title: 'ก้าวที่ 5: ร่างบทนำและความสำคัญ (บทที่ 1) 📝', details: ProjectTopic5 },
-      { title: 'ก้าวที่ 6: เป้าหมายและสมมติฐาน 🎯', details: ProjectTopic6 },
+      { title: 'ก้าวที่ 6: เป้าหมายและสมมติฐาน (รวมอยู่ในก้าวที่ 2) 🎯', details: ProjectTopic6 },
       { title: 'ก้าวที่ 7: กุญแจสู่การค้นความรู้ (AI) 🔑', details: ProjectTopic7 },
       { title: 'ก้าวที่ 8: สะสมแต้มความรู้ (บทที่ 2) 📚', details: ProjectTopic8 },
       { title: 'ก้าวที่ 9: วางกลยุทธ์การทดลอง (AI) 🧪', details: ProjectTopic9 },

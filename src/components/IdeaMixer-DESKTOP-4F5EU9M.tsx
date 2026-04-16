@@ -78,7 +78,10 @@ export const IdeaMixer = () => {
                     <input
                         type="text"
                         value={problem}
-                        onChange={(e) => setProblem(e.target.value)}
+                        onChange={(e) => {
+                            setProblem(e.target.value);
+                            updateData({ problem: e.target.value });
+                        }}
                         placeholder="เช่น ขยะเยอะ, อากาศร้อน"
                         className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     />
@@ -90,7 +93,10 @@ export const IdeaMixer = () => {
                     <input
                         type="text"
                         value={interest}
-                        onChange={(e) => setInterest(e.target.value)}
+                        onChange={(e) => {
+                            setInterest(e.target.value);
+                            updateData({ interest: e.target.value });
+                        }}
                         placeholder="เช่น เล่นเกม, วาดรูป, เลี้ยงแมว"
                         className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     />
@@ -102,7 +108,10 @@ export const IdeaMixer = () => {
                     <input
                         type="text"
                         value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
+                        onChange={(e) => {
+                            setSubject(e.target.value);
+                            updateData({ subject: e.target.value });
+                        }}
                         placeholder="เช่น คอมพิวเตอร์, ศิลปะ"
                         className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     />

@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { User, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth, googleProvider, facebookProvider, lineProvider, db } from '../firebase';
 import { doc, setDoc, getDoc, collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { 
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import {
   AuthProvider as FirebaseAuthProvider 
 } from 'firebase/auth';
 
@@ -13,7 +15,6 @@ interface AuthContextType {
   userData: UserProfile | null;
   userRole: 'student' | 'teacher' | 'admin' | null;
   loading: boolean;
-  isUserDataLoaded: boolean;
   login: (provider?: 'google' | 'facebook' | 'line') => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
@@ -42,7 +43,6 @@ const AuthContext = createContext<AuthContextType>({
   checkAccess: () => false,
   authError: null,
   clearError: () => {},
-  isUserDataLoaded: false
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -53,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
   // Use refs to track current state for the onAuthStateChanged listener
   const userRef = useRef<any | null>(null);
@@ -77,7 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Prevent infinite loops by checking if we have already processed this user UID
         if (processedUidRef.current === currentUser.uid) {
           setUser(currentUser);
-          setIsUserDataLoaded(true);
           setLoading(false);
           return;
         }
@@ -92,7 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Listen to user document for real-time updates
           if (unsubscribeDoc) unsubscribeDoc();
           
-          unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+            unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+            if (isLoggingInRef.current) {
+              return; // Ignore snapshots during active manual login to prevent role revert
+            }
             if (docSnap.exists()) {
               const data = docSnap.data();
               // Force admin role for the founder email
@@ -103,28 +104,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else {
               // Create default doc if missing
               const finalRole = currentUser.email === 'selalad@gmail.com' ? 'admin' : null;
-              const defaultData: any = {
+              const defaultData = {
                 uid: currentUser.uid,
                 email: currentUser.email || '',
                 displayName: currentUser.displayName || '',
                 photoURL: currentUser.photoURL || '',
                 createdAt: serverTimestamp(),
+                role: finalRole,
                 onboardingComplete: false,
                 isPremium: false,
                 aiUsageCount: 0,
-                projectCount: 0
+                projectCount: 0,
+                subscriptionExpires: null
               };
-              if (finalRole) defaultData.role = finalRole;
-              
               setUserData(defaultData);
               setUserRole(finalRole);
               setDoc(userDocRef, defaultData, { merge: true });
             }
-            setIsUserDataLoaded(true);
             setLoading(false);
           }, (error) => {
             console.error("Error fetching user data:", error);
-            setIsUserDataLoaded(true); // Still set to true to avoid infinite loading
             setLoading(false);
           });
 
@@ -144,7 +143,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserData(null);
         setUserRole(null);
         if (unsubscribeDoc) unsubscribeDoc();
-        setIsUserDataLoaded(false);
         setLoading(false);
       }
     });
@@ -213,20 +211,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoggingInRef.current = true;
     isMockAdminRef.current = false;
     try {
-      let provider: FirebaseAuthProvider;
-      switch (providerType) {
-        case 'facebook':
-          provider = facebookProvider;
-          break;
-        case 'line':
-          provider = lineProvider;
-          break;
-        default:
-          provider = googleProvider;
+      let result;
+
+      if (Capacitor.isNativePlatform() && providerType === 'google') {
+        // Native Google Login
+        const { user: firebaseUser, credential } = await FirebaseAuthentication.signInWithGoogle();
+        if (credential) {
+          const fbCredential = GoogleAuthProvider.credential(credential.idToken);
+          result = await signInWithCredential(auth, fbCredential);
+        } else {
+           throw new Error('No credential returned from native google sign in');
+        }
+      } else {
+        // Web Login
+        let provider: FirebaseAuthProvider;
+        switch (providerType) {
+          case 'facebook':
+            provider = facebookProvider;
+            break;
+          case 'line':
+            provider = lineProvider;
+            break;
+          default:
+            provider = googleProvider;
+        }
+        result = await signInWithPopup(auth, provider);
       }
-      const result = await signInWithPopup(auth, provider);
-      
-      if (result.user) {
+
+      if (result && result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
         
         // Ensure the admin mock email retains admin role automatically
@@ -340,8 +352,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       switchRole,
       checkAccess,
       authError,
-      clearError,
-      isUserDataLoaded
+      clearError
     }}>
       {children}
     </AuthContext.Provider>

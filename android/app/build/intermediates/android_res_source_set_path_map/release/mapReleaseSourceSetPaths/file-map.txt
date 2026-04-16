@@ -1,8 +1,0 @@
-com.ishelper.app-pngs-0 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\generated\res\pngs\release
-com.ishelper.app-resValues-1 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\generated\res\resValues\release
-com.ishelper.app-updated_navigation_xml-2 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\generated\updated_navigation_xml\release
-com.ishelper.app-packageReleaseResources-3 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
-com.ishelper.app-packageReleaseResources-4 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
-com.ishelper.app-release-5 D:\OneDrive\work\app\is-helper-2 (2)\android\app\build\intermediates\merged_res\release\mergeReleaseResources
-com.ishelper.app-main-6 D:\OneDrive\work\app\is-helper-2 (2)\android\app\src\main\res
-com.ishelper.app-release-7 D:\OneDrive\work\app\is-helper-2 (2)\android\app\src\release\res

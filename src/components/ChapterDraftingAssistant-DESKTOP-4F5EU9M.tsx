@@ -88,37 +88,16 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
         }
     };
 
-    const [isSaving, setIsSaving] = useState(false);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-    const handleManualSave = async () => {
-        setIsSaving(true);
-        try {
-            await updateChapterData({
-                guideline: JSON.stringify(guideline),
-                studentInputs: JSON.stringify(studentInputs),
-                studentImages: JSON.stringify(studentImages),
-                feedbackResults: JSON.stringify(feedbackResults)
-            });
-            setHasUnsavedChanges(false);
-        } catch (e) {
-            console.error("Failed to save chapter data", e);
-            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     const handleInputChange = (key: string, value: string) => {
         const newInputs = { ...studentInputs, [key]: value };
         setStudentInputs(newInputs);
-        setHasUnsavedChanges(true);
+        saveToFirestore({ studentInputs: JSON.stringify(newInputs) });
     };
 
     const removeImage = (key: string) => {
         const newImages = { ...studentImages, [key]: null };
         setStudentImages(newImages);
-        setHasUnsavedChanges(true);
+        saveToFirestore({ studentImages: JSON.stringify(newImages) });
     };
 
     const handleTriggerFileInput = (key: string) => {
@@ -157,7 +136,7 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
                     }
                 };
                 setStudentImages(newImages);
-                setHasUnsavedChanges(true);
+                saveToFirestore({ studentImages: JSON.stringify(newImages) });
             } catch (error) {
                 console.error("Error processing image:", error);
                 alert("เกิดข้อผิดพลาดในการประมวลผลหรืออัปโหลดรูปภาพ");
@@ -367,29 +346,6 @@ const ChapterDraftingAssistant: React.FC<ChapterDraftingAssistantProps> = ({
                                 </div>
                             );
                         })}
-                    </div>
-
-                    <div className="flex justify-end pt-6 border-t border-slate-100 dark:border-slate-800">
-                        <button
-                            onClick={handleManualSave}
-                            disabled={isSaving || !hasUnsavedChanges}
-                            className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all ${
-                                hasUnsavedChanges 
-                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 active:scale-95' 
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-default'
-                            }`}
-                        >
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    กำลังบันทึก...
-                                </>
-                            ) : hasUnsavedChanges ? (
-                                <>บันทึกเนื้อหาส่วนนี้ ✨</>
-                            ) : (
-                                <>บันทึกเรียบร้อย ✅</>
-                            )}
-                        </button>
                     </div>
                 </motion.div>
             )}

@@ -3,7 +3,7 @@ import { useProjectData } from '../../hooks/useProjectData';
 import { Tag, CheckCircle } from 'lucide-react';
 
 const ProjectTopic3 = () => {
-    const { projectTitle, setProjectTitle, save, isSaving, isDirty } = useProjectData();
+    const { projectTitle, setProjectTitle } = useProjectData();
 
     return (
         <div className="space-y-6">
@@ -44,29 +44,6 @@ const ProjectTopic3 = () => {
                         <li><strong>แบบที่ 2:</strong> บอกชัดเจนว่าทำอะไรกับอะไร (เช่น "การเปรียบเทียบประสิทธิภาพของสมุนไพรกำจัดมด")</li>
                     </ul>
                 </div>
-            </div>
-
-            <div className="flex justify-end">
-                <button
-                    onClick={save}
-                    disabled={isSaving || !isDirty}
-                    className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all ${
-                        isDirty 
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 active:scale-95' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-default'
-                    }`}
-                >
-                    {isSaving ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                            กำลังบันทึก...
-                        </>
-                    ) : isDirty ? (
-                        <>บันทึกชื่อโครงงาน ✨</>
-                    ) : (
-                        <>บันทึกเรียบร้อย ✅</>
-                    )}
-                </button>
             </div>
         </div>
     );

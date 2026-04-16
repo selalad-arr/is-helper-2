@@ -209,11 +209,13 @@ service cloud.firestore {
 
     function isValidUserProgress() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'visited_is1', 'visited_is2', 'visited_is3', 'lastUpdated']) &&
+             hasOnlyAllowedFields(['uid', 'visited_is1', 'visited_is2', 'visited_is3', 'visited_project_creation', 'activeScenario', 'lastUpdated']) &&
              request.resource.data.uid is string &&
              (!('visited_is1' in request.resource.data) || isValidList(request.resource.data.visited_is1, 100)) &&
              (!('visited_is2' in request.resource.data) || isValidList(request.resource.data.visited_is2, 100)) &&
              (!('visited_is3' in request.resource.data) || isValidList(request.resource.data.visited_is3, 100)) &&
+             (!('visited_project_creation' in request.resource.data) || isValidList(request.resource.data.visited_project_creation, 100)) &&
+             (!('activeScenario' in request.resource.data) || request.resource.data.activeScenario == null || request.resource.data.activeScenario is string) &&
              (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
@@ -253,52 +255,57 @@ service cloud.firestore {
 
     function isValidUserPresentation() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'projectTitle', 'introduction', 'methodology', 'results', 'conclusion', 'textContent']) &&
+             hasOnlyAllowedFields(['uid', 'projectTitle', 'introduction', 'methodology', 'results', 'conclusion', 'textContent', 'lastUpdated']) &&
              request.resource.data.uid is string &&
              isValidOptionalString('projectTitle', 0, 200) &&
              isValidOptionalString('introduction', 0, 50000) &&
              isValidOptionalString('methodology', 0, 50000) &&
              isValidOptionalString('results', 0, 50000) &&
              isValidOptionalString('conclusion', 0, 50000) &&
-             isValidOptionalString('textContent', 0, 1000000);
+             isValidOptionalString('textContent', 0, 1000000) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidUserIS3Plan() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'plan']) &&
+             hasOnlyAllowedFields(['uid', 'plan', 'lastUpdated']) &&
              request.resource.data.uid is string &&
-             isValidOptionalString('plan', 0, 1000000);
+             isValidOptionalString('plan', 0, 1000000) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidUserIS3AAR() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'wentWell', 'problems', 'improvements', 'generatedAAR']) &&
+             hasOnlyAllowedFields(['uid', 'wentWell', 'problems', 'improvements', 'generatedAAR', 'lastUpdated']) &&
              request.resource.data.uid is string &&
              isValidOptionalString('wentWell', 0, 50000) &&
              isValidOptionalString('problems', 0, 50000) &&
              isValidOptionalString('improvements', 0, 50000) &&
-             isValidOptionalString('generatedAAR', 0, 1000000);
+             isValidOptionalString('generatedAAR', 0, 1000000) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidUserSourceAnalysis() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'activeTab', 'manualInput', 'feedback']) &&
+             hasOnlyAllowedFields(['uid', 'activeTab', 'manualInput', 'feedback', 'lastUpdated']) &&
              request.resource.data.uid is string &&
              isValidOptionalString('activeTab', 0, 50) &&
              isValidOptionalString('manualInput', 0, 50000) &&
-             isValidOptionalString('feedback', 0, 1000000);
+             isValidOptionalString('feedback', 0, 1000000) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidUserChat() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'messages']) &&
+             hasOnlyAllowedFields(['uid', 'messages', 'lastUpdated']) &&
              request.resource.data.uid is string &&
-             isValidOptionalString('messages', 0, 1000000);
+             isValidOptionalString('messages', 0, 1000000) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidUserExercise() {
       return hasRequiredFields(['uid']) &&
-             hasOnlyAllowedFields(['uid', 'answer', 'feedback', 'chatHistory', 'problem', 'interest', 'subject', 'isLevel', 'generatedIdeas']) &&
+             hasOnlyAllowedFields(['uid', 'answer', 'feedback', 'chatHistory', 'problem', 'interest', 'subject', 'isLevel', 'generatedIdeas', 'lastUpdated']) &&
              request.resource.data.uid is string &&
              isValidOptionalString('answer', 0, 50000) &&
              isValidOptionalString('feedback', 0, 50000) &&
@@ -307,7 +314,8 @@ service cloud.firestore {
              isValidOptionalString('interest', 0, 5000) &&
              isValidOptionalString('subject', 0, 5000) &&
              isValidOptionalString('isLevel', 0, 50) &&
-             (!('generatedIdeas' in request.resource.data) || isValidList(request.resource.data.generatedIdeas, 100));
+             (!('generatedIdeas' in request.resource.data) || isValidList(request.resource.data.generatedIdeas, 100)) &&
+             (!('lastUpdated' in request.resource.data) || request.resource.data.lastUpdated is timestamp);
     }
 
     function isValidAiCache() {

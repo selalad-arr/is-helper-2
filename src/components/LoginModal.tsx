@@ -14,8 +14,8 @@ export const LoginModal: React.FC = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Do not render if user is already logged in (Role selection is now a page) or is on tutorial
-    if (user || location.pathname === '/tutorial') return null;
+    // Do not render if user is fully logged in with a role or is on tutorial
+    if ((user && userRole) || location.pathname === '/tutorial') return null;
 
     const handleGoogleLogin = async () => {
         setIsSubmitting(true);

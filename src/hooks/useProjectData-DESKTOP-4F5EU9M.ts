@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
  * - user_projects/{uid}/details/{isType}: Heavy content (research data, concepts)
  */
 export const useProjectData = (sectionOverride?: string) => {
-    const { user, userData, isUserDataLoaded } = useAuth();
+    const { user, userData } = useAuth();
     // 1. Auto-detect IS section from URL (e.g., /is1/0 -> isKey = 'is1')
     const { isKey } = useParams<{ isKey: string }>();
     const currentIsType = (sectionOverride || isKey)?.toLowerCase();
@@ -34,13 +34,11 @@ export const useProjectData = (sectionOverride?: string) => {
     
     const [isLoaded, setIsLoaded] = useState(false);
     const [isDetailsLoaded, setIsDetailsLoaded] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isDirty, setIsDirty] = useState(false);
 
     // 2. Fetch MAIN Project Data (Titles, Selected Type)
     useEffect(() => {
-        if (!user || !isUserDataLoaded) {
-            if (!user) setIsLoaded(true);
+        if (!user) {
+            setIsLoaded(true);
             return;
         }
 
@@ -56,20 +54,19 @@ export const useProjectData = (sectionOverride?: string) => {
                 setIs3ProjectTitle(data.is3ProjectTitle || '');
                 setSelectedIS(data.selectedIS || 'INDEPENDENT');
                 
-                // For IS1/2/3, these come from subcollections, otherwise they come from the main doc (Beginner mode)
-                if (!currentIsType || !['is1', 'is2', 'is3'].includes(currentIsType)) {
+                if (!['is1', 'is2', 'is3'].includes(currentIsType || '')) {
                     setCoreConcept(data.coreConcept || '');
                     setResearchData(data.researchData || '');
                 }
             } else {
-                // Clear state only if we don't have existing content yet to avoid flicker/data loss during context transitions
-                setIndependentProjectTitle(prev => prev || '');
-                setIs1ProjectTitle(prev => prev || '');
-                setIs2ProjectTitle(prev => prev || '');
-                setIs3ProjectTitle(prev => prev || '');
-                setSelectedIS(prev => prev || 'INDEPENDENT');
-                setCoreConcept(prev => prev || '');
-                setResearchData(prev => prev || '');
+                // Clear state if document doesn't exist for this context
+                setIndependentProjectTitle('');
+                setIs1ProjectTitle('');
+                setIs2ProjectTitle('');
+                setIs3ProjectTitle('');
+                setSelectedIS('INDEPENDENT');
+                setCoreConcept('');
+                setResearchData('');
             }
             setIsLoaded(true);
         }, (error) => {
@@ -108,15 +105,15 @@ export const useProjectData = (sectionOverride?: string) => {
     }, [user, contextId, currentIsType]);
 
     const saveToFirestore = async (dataToUpdate: any) => {
-        if (!user || !isUserDataLoaded) return;
+        if (!user) return;
         const compositeId = `${user.uid}_${contextId}`;
 
         // Split data between MAIN doc and SECTION doc
         const mainDocFields = ['independentProjectTitle', 'is1ProjectTitle', 'is2ProjectTitle', 'is3ProjectTitle', 'selectedIS'];
         const detailFields = ['coreConcept', 'researchData'];
 
-        const mainUpdate: any = { uid: user.uid };
-        const detailUpdate: any = { uid: user.uid };
+        const mainUpdate: any = { uid: user.uid, lastUpdated: new Date() };
+        const detailUpdate: any = { uid: user.uid, lastUpdated: new Date() };
         
         let hasMainUpdate = false;
         let hasDetailUpdate = false;
@@ -166,34 +163,20 @@ export const useProjectData = (sectionOverride?: string) => {
             promises.push(setDoc(doc(db, 'user_projects', compositeId), detailUpdate, { merge: true }));
         }
 
-        setIsSaving(true);
         try {
             await Promise.all(promises);
-            setIsDirty(false);
         } catch (error) {
             console.error("Error saving project data:", error);
-            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-        } finally {
-            setIsSaving(false);
         }
     };
 
-    const saveCurrentData = async () => {
-        await saveToFirestore({
-            independentProjectTitle,
-            is1ProjectTitle,
-            is2ProjectTitle,
-            is3ProjectTitle,
-            selectedIS,
-            coreConcept,
-            researchData
-        });
-    };
-
-    const wrapSetState = (setter: any) => (val: any) => {
-        setter(val);
-        setIsDirty(true);
-    };
+    const handleSetIndependentProjectTitle = (val: string) => { setIndependentProjectTitle(val); saveToFirestore({ independentProjectTitle: val }); };
+    const handleSetIs1ProjectTitle = (val: string) => { setIs1ProjectTitle(val); saveToFirestore({ is1ProjectTitle: val }); };
+    const handleSetIs2ProjectTitle = (val: string) => { setIs2ProjectTitle(val); saveToFirestore({ is2ProjectTitle: val }); };
+    const handleSetIs3ProjectTitle = (val: string) => { setIs3ProjectTitle(val); saveToFirestore({ is3ProjectTitle: val }); };
+    const handleSetSelectedIS = (val: 'INDEPENDENT' | 'IS1' | 'IS2' | 'IS3') => { setSelectedIS(val); saveToFirestore({ selectedIS: val }); };
+    const handleSetCoreConcept = (val: string) => { setCoreConcept(val); saveToFirestore({ coreConcept: val }); };
+    const handleSetResearchData = (val: string) => { setResearchData(val); saveToFirestore({ researchData: val }); };
 
     const projectTitle = selectedIS === 'IS1' ? is1ProjectTitle :
                          selectedIS === 'IS2' ? is2ProjectTitle :
@@ -201,25 +184,22 @@ export const useProjectData = (sectionOverride?: string) => {
                          independentProjectTitle;
 
     const setProjectTitle = (title: string) => {
-        if (selectedIS === 'IS1') setIs1ProjectTitle(title);
-        else if (selectedIS === 'IS2') setIs2ProjectTitle(title);
-        else if (selectedIS === 'IS3') setIs3ProjectTitle(title);
-        else setIndependentProjectTitle(title);
+        if (selectedIS === 'IS1') handleSetIs1ProjectTitle(title);
+        else if (selectedIS === 'IS2') handleSetIs2ProjectTitle(title);
+        else if (selectedIS === 'IS3') handleSetIs3ProjectTitle(title);
+        else handleSetIndependentProjectTitle(title);
     };
 
     return { 
         projectTitle, 
         setProjectTitle, 
-        is1ProjectTitle, setIs1ProjectTitle: wrapSetState(setIs1ProjectTitle),
-        is2ProjectTitle, setIs2ProjectTitle: wrapSetState(setIs2ProjectTitle),
-        is3ProjectTitle, setIs3ProjectTitle: wrapSetState(setIs3ProjectTitle),
-        selectedIS, setSelectedIS: wrapSetState(setSelectedIS),
-        coreConcept, setCoreConcept: wrapSetState(setCoreConcept),
-        researchData, setResearchData: wrapSetState(setResearchData),
+        is1ProjectTitle, setIs1ProjectTitle: handleSetIs1ProjectTitle,
+        is2ProjectTitle, setIs2ProjectTitle: handleSetIs2ProjectTitle,
+        is3ProjectTitle, setIs3ProjectTitle: handleSetIs3ProjectTitle,
+        selectedIS, setSelectedIS: handleSetSelectedIS,
+        coreConcept, setCoreConcept: handleSetCoreConcept,
+        researchData, setResearchData: handleSetResearchData,
         isLoaded: isLoaded && isDetailsLoaded,
-        currentSection: currentIsType,
-        save: saveCurrentData,
-        isSaving,
-        isDirty
+        currentSection: currentIsType
     };
 };
