@@ -40,7 +40,7 @@ export const getAiClient = (config?: { customApiKey?: string, isPremium?: boolea
 }
 
 export const getModelConfig = () => {
-    return { modelId: 'gemini-1.5-flash' };
+    return { modelId: 'gemini-2.5-flash' };
 };
 
 export const createChatSession = async (systemInstruction: string, history: any[] = [], isPremium: boolean = false) => {
